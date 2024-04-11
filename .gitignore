@@ -1,0 +1,56 @@
+# Object files
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Static Libraries
+*.lib
+*.a
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build folders
+build/
+bin/
+obj/
+
+# Backup files
+*~
+*.bak
+*.swp
+*.tmp
+
+
+# Other files and folders
+.DS_Store
+.vscode/
+.vs/
+*.log
+*.tmp
+*.user
+*.suo
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+
+# If you're using Make
+Makefile
+*.d
+
+# Dependency directories (if you're not including dependencies in your repo)
+deps/
+vendor/
