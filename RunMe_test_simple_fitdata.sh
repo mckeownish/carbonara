@@ -1,11 +1,13 @@
 #!/bin/bash
-# root = /Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/
+
+# Determine the root directory based on the script location
+ROOT=$(dirname "$(readlink -f "$0")")
 
  ### argv[ 1] scattering data file
- ScatterFile=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/Saxs.dat
+ ScatterFile=$ROOT/newFitData/test_simple/Saxs.dat
 
  ### argv[ 2] sequence file location
- fileLocs=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/
+ fileLocs=$ROOT/newFitData/test_simple/
 
  ### argv[ 3] restart tag (use to start from existing prediction)
  initialCoordsFile=frompdb
@@ -14,7 +16,7 @@
  pairedPredictions=False
 
  ### argv[ 5] fixed sections file (again can be empty)
- fixedsections=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/varyingSectionSecondary1.dat
+ fixedsections=$ROOT/newFitData/test_simple/varyingSectionSecondary1.dat
 
  ### argv[ 6] number of structures
  noStructures=1
@@ -35,19 +37,19 @@
  maxNoFitSteps=5
 
  ### argv[12] prediction file - mol[i] in the fitting folder
- predictionFile=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/fitdata
+ predictionFile=$ROOT/newFitData/test_simple/fitdata
 
  ### argv[13] scattering output file
- scatterOut=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/fitdata
+ scatterOut=$ROOT/newFitData/test_simple/fitdata
 
  ### argv[14] mixture list file, alist of sets of numbers indicatig the allowed set of mixture percentages of each species (e.g. dimer 20 monomer 80)
- mixtureFile=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/mixtureFile.dat
+ mixtureFile=$ROOT/newFitData/test_simple/mixtureFile.dat
 
  ### argv[15] previous fit string in form fitname/mol6Substep_10_1.dat+fitname/mol6Substep_10_2.dat
- prevFitStr=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/redundant
+ prevFitStr=$ROOT/newFitData/test_simple/redundant
 
  ### argv[16] log file location
- logLoc=/Users/josh/Documents/PhD/DevDungeon/carbonara/newFitData/test_simple/fitdata
+ logLoc=$ROOT/newFitData/test_simple/fitdata
 
  ### argv[17] last line of the previous fit log, this is only used for a restart if argv[3] = True
  endLinePrevLog=null
@@ -58,9 +60,11 @@
 for i in {1..3}
 
 do
-
-   echo " Run number : $i "
-
-   ./predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans
+    echo "\n"
+    echo " >> Run number : $i "
+    echo "\n"
+    
+    ./predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans
+        
 
 done

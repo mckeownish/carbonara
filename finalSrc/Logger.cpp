@@ -136,7 +136,6 @@ void Logger::consoleFitAttempt(int step, int improveIndex, ModelParameters param
                                << "\n";
 
     }
-
     
     std::cout << std::left
                 
@@ -146,3 +145,16 @@ void Logger::consoleFitAttempt(int step, int improveIndex, ModelParameters param
                 << std::setw(20) << scatterFitSecond
                 << "\n";
     }
+
+
+void Logger::consoleChange(std::string updateType, ModelParameters& params) {
+
+    if (updateType=="fitImprove") {
+        std::cout << std::left << "                     --Scatter Fit Improved!-- \n";
+    }
+
+    else if (updateType=="krangeIncrease") {
+        std::cout << std::left << "                      --K max increased to " << params.kmaxCurr << "--                      \n";
+    }
+
+}

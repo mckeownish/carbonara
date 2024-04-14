@@ -30,13 +30,13 @@ public:
     void logMetadata(const std::string& run, ModelParameters params, const std::vector<double>& helRatList);
 
     void consoleInitial(const double& scatterFitFirst, const double& writhePenalty,
-                                const double& overlapPenalty, const double& distanceConstraints);
+                        const double& overlapPenalty, const double& distanceConstraints);
 
     void consoleCurrentStep(int step, int index, double currFit);
 
     void consoleFitAttempt(int step, int improveIndex, ModelParameters params, double scatterFitFirst, double scatterFitSecond);
 
-
+    void consoleChange(std::string updateType, ModelParameters& params);
 
 };
 

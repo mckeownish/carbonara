@@ -54,3 +54,23 @@ Makefile
 # Dependency directories (if you're not including dependencies in your repo)
 deps/
 vendor/
+
+
+# randos 
+__pycache__/
+rand_structures/
+*.egg-info
+*.egg
+Lysozyme/
+test_data/
+carbonarapy/
+generate_structure
+predictStructureQvary
+CarbonaraDataTools.py
+predictionSetupCameron2.ipynb
+
+
+
+
+
+

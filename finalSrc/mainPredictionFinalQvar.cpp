@@ -108,9 +108,7 @@ int main( int argc, const char* argv[] ) {
   /* Main algorithm */
   // This whole section is bracket hell
   // My god - we need break stuff tf up into smaller functions
-    
   
-
   // noSections vector tells us how many subsections are in each molecule
   // e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
   std::vector<int> noSections;
@@ -154,6 +152,8 @@ int main( int argc, const char* argv[] ) {
       if(params.kmaxCurr>params.kmax){
         params.kmaxCurr=params.kmax;
       }
+      
+      logger.consoleChange("krangeIncrease", params);
         
       improvementIndexTest=0;
       // generate a new first fit.
@@ -207,7 +207,7 @@ int main( int argc, const char* argv[] ) {
 	    double uProb = rng.getDistributionR();;
           
 	    if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
-        
+
 	      scatterFit = fitTemp;
 	      mol[l] = molCopyR;
 	      molFit = molFitTmp;
@@ -224,6 +224,8 @@ int main( int argc, const char* argv[] ) {
         // log file write
         logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
                         molFitTmp.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
+
+        logger.consoleChange("fitImprove", params);
 
 	    } // transition check end
 	  } // cacaDist end§
