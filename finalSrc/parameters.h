@@ -29,6 +29,10 @@ struct ModelParameters {
     int noScatterFitSteps = 5000;
     bool affineTrans=false;
     std::vector<double> helRatList;
+    std::vector< std::vector<double> > mixtureList;
+    
+    int improvementIndexTest = 0;
+    int noHistoricalFits = 1;
     
 };
 

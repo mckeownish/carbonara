@@ -12,6 +12,7 @@
 #include "moleculeFitAndState.h"
 #include "experimentalData.h"
 #include "parameters.h"
+#include "Logger.h"
 
 // Loads in structural data to referenced mol class
 void readInStructures(const char* argv[], std::vector<ktlMolecule>& mol, ModelParameters& params);
@@ -24,6 +25,10 @@ void readFixedDistancesConstraints(const char* argv[], std::vector<ktlMolecule>&
 
 // Loads in mixture file to referenced mixtureList
 void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>>& mixtureList);
+
+// Increase kmax range logic - changes made in place with reference
+void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitAndState>& molFitAndStateSet,
+                  experimentalData& ed,  ModelParameters& params, Logger& logger);
 
 // Construct molecule file name - accounting for sub structure
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,

@@ -27,7 +27,7 @@ public:
                   const long& durationCount, const double& kmaxCurr, const std::string& scatterPath,
                   const std::string& moleculePath);
 
-    void logMetadata(const std::string& run, ModelParameters params, const std::vector<double>& helRatList);
+    void logMetadata(const std::string& run, ModelParameters params);
 
     void consoleInitial(const double& scatterFitFirst, const double& writhePenalty,
                         const double& overlapPenalty, const double& distanceConstraints);

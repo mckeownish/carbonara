@@ -37,8 +37,7 @@ void Logger::logEntry(const int& improvementIndex, const int& fitStep, const dou
     }
 }
 
-void Logger::logMetadata(const std::string& run, ModelParameters params,
-                         const std::vector<double>& helRatList) {
+void Logger::logMetadata(const std::string& run, ModelParameters params) {
 
     if (logFile.is_open()) {
 
@@ -49,9 +48,9 @@ void Logger::logMetadata(const std::string& run, ModelParameters params,
         logFile << "\"qmax_curr\": \"" << params.kmaxCurr << "\", ";
 
         logFile << "\"HelixSolventRatios\": [";
-        for (size_t i = 0; i < helRatList.size(); ++i) {
-            logFile << helRatList[i];
-            if (i < helRatList.size() - 1) {
+        for (size_t i = 0; i < params.helRatList.size(); ++i) {
+            logFile << params.helRatList[i];
+            if (i < params.helRatList.size() - 1) {
                 logFile << ", ";
             }
         }
@@ -97,8 +96,9 @@ std::string Logger::escapeJSON(const std::string& s) {
 void Logger::consoleInitial(const double& scatterFitFirst, const double& writhePenalty,
                             const double& overlapPenalty, const double& distanceConstraints) {
                                 
-    std::cout << std::left << std::setw(80) << "Initial molecule"
-                           << "\n";
+    // std::cout << std::left << std::setw(80) << "------------------------------ Initial Molecule ------------------------------- "
+    std::cout << std::left << std::setw(80) << "------------------------------------------------------------------------------- "
+                           << "\n";         
 
     std::cout << std::left << std::setw(20) << "Scattering Fit" 
                            << std::setw(20) << "Overlap Penalty"
@@ -110,7 +110,9 @@ void Logger::consoleInitial(const double& scatterFitFirst, const double& writheP
                            << std::setw(20) << overlapPenalty
                            << std::setw(20) << writhePenalty
                            << std::setw(20) << distanceConstraints
-                           << "\n \n";
+                           << "\n"
+                           << "------------------------------------------------------------------------------- "
+                           << "\n";
 
 }
 
@@ -129,7 +131,7 @@ void Logger::consoleCurrentStep(int step, int index, double currFit) {
 void Logger::consoleFitAttempt(int step, int improveIndex, ModelParameters params, double scatterFitFirst, double scatterFitSecond) {
     
     if (step==0){
-        std::cout << std::left << std::setw(20) << "Improved Index" 
+        std::cout << std::left << std::setw(20) << "Improvement Index" 
                                << std::setw(20) << "Current Fit Step"
                                << std::setw(20) << "Current Scatter"
                                << std::setw(20) << "Updated Scatter"
@@ -150,11 +152,11 @@ void Logger::consoleFitAttempt(int step, int improveIndex, ModelParameters param
 void Logger::consoleChange(std::string updateType, ModelParameters& params) {
 
     if (updateType=="fitImprove") {
-        std::cout << std::left << "                     --Scatter Fit Improved!-- \n";
+        std::cout << std::left << "                  --- Scatter Fit Improved! --- \n";
     }
 
     else if (updateType=="krangeIncrease") {
-        std::cout << std::left << "                      --K max increased to " << params.kmaxCurr << "--                      \n";
+        std::cout << std::left << "                   --- K max increased to " << params.kmaxCurr << " --- \n";
     }
 
 }

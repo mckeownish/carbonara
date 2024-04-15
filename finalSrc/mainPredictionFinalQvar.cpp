@@ -13,12 +13,9 @@
 using namespace std::chrono;
 
 // todo: 
-// add helRatList, mixtureList to params (i think)
+
 // .getOverallFit (less args)
-// improved cout - logger function, much easier to read on terminal
 // test with cameron multi-mol - work? eeesh
- // rotate/translate become own function?
- // .logEntry (params / less)
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
 
@@ -68,6 +65,7 @@ int main( int argc, const char* argv[] ) {
   /* Read in the permissible mixture list */
   std::vector< std::vector<double> > mixtureList;
   readPermissibleMixtures(argv, mixtureList);
+  params.mixtureList = mixtureList;
   
   /* Read in the scattering and set up the scattering model */
   experimentalData ed(argv[1]);
@@ -86,8 +84,6 @@ int main( int argc, const char* argv[] ) {
     improvementIndex=std::atoi(argv[17]);
   }
   
-  // redo molecule hydration layer to update fit
-  // ** moleculeFitAndState **
   moleculeFitAndState molFitOg(mol, params);
   std::pair<double,double> scatterFitOut = molFitOg.getOverallFit(ed, mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molFitOg, ed, params.kmin, params.kmaxCurr, "initial");
@@ -96,7 +92,7 @@ int main( int argc, const char* argv[] ) {
   auto curr = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(curr - start);
 
-  logger.logMetadata(argv[16], params, params.helRatList);
+  logger.logMetadata(argv[16], params);
   
   std::string tempMolName = "temp_molecule_name";
   // log starting point
@@ -120,50 +116,33 @@ int main( int argc, const char* argv[] ) {
     
   // argv[11] Max number of fitting steps
   int noScatterFitSteps=std::atoi(argv[11]);
-
-  // set up the vector of existing structures
-  // initialise to the initial guess
-
-  int noHistoricalFits = 1;
+  
   std::vector<moleculeFitAndState> molFitAndStateSet;
   
-  for(int i=0;i<noHistoricalFits;i++){
+  for(int i=0;i<params.noHistoricalFits;i++){
     molFitAndStateSet.push_back(molFit);
   }
 
-  int improvementIndexTest=0;
+  // int improvementIndexTest=0;
   
   // loop number
   int k=0;
 
   // This is a monster while loop - strap in chaps
   while(k < noScatterFitSteps){
-      
-    // Print out to terminal window
-    logger.consoleFitAttempt(k, improvementIndex, params, scatterFit.first, scatterFit.second);
-    // std::cout<<params.kmin<<" "<<params.kmaxCurr<<" "<<params.kmax<<" "<<scatterFit.first<<" "<<scatterFit.second<<"\n";
     
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
-    if(scatterFit.second <0.0005 || (improvementIndexTest>std::round(noScatterFitSteps/5)&& scatterFit.second <0.0007)){
-      
-      // if we have achieved a sufficiently good fit include more data.
-      params.kmaxCurr=params.kmaxCurr+0.01;
-        
-      if(params.kmaxCurr>params.kmax){
-        params.kmaxCurr=params.kmax;
-      }
-      
-      logger.consoleChange("krangeIncrease", params);
-        
-      improvementIndexTest=0;
-      // generate a new first fit.
-      scatterFit = molFitAndStateSet[0].getOverallFit(ed,mixtureList,params.helRatList,params.kmin,params.kmaxCurr);
+    if(scatterFit.second <0.0005 || (params.improvementIndexTest>std::round(noScatterFitSteps/5)&& scatterFit.second <0.0007)){
+
+      increaseKmax(scatterFit, molFitAndStateSet, ed, params, logger);
+
     }
     
-    improvementIndexTest++;
+    params.improvementIndexTest = params.improvementIndexTest + 1;
+
     // loop over the molecules (e.g monomer and dimer fit
 
-    int index = rng.getChangeIndexProbability(k, noHistoricalFits, noScatterFitSteps);
+    int index = rng.getChangeIndexProbability(k, params.noHistoricalFits, noScatterFitSteps);
     molFit = molFitAndStateSet[index];
     mol = molFit.getMolecule();
     scatterFit = molFit.getFit();
@@ -173,18 +152,12 @@ int main( int argc, const char* argv[] ) {
       int netIndex=0;
          
       //loop over the sections of the given molecule (i.e. if its a monomer this loop is tivial, but not for a multimer
-      
       // another monster looooooop
       for(int i=1;i<=noSections[l];i++){
-	
-    // To become own function?
-    // rotate/translate section begins
+	   
+  // Selected transformation option? 
 	if(params.affineTrans==true){
         
-    // bool transformationApplied = performAffineTransformation(mol, l, generator1, distTran, rotAng, theAng, phiAng, 
-    //                                                      distributionR, generator, molFit, ed, mixtureList, 
-    //                                                      helRatList, kmin, kmaxCurr, k, noScatterFitSteps);
-
 	  ktlMolecule molCopyR = mol[l];
         
 	  double angle = rng.getRotAng(); double theta = rng.getTheAng(); double phi = rng.getPhiAng();
@@ -194,20 +167,19 @@ int main( int argc, const char* argv[] ) {
 	  point tranVec(xtran,ytran,ztran);
 
 	  molCopyR.changeMoleculeMultiRotate(angle,kv,i,tranVec);
-	  bool cacaDist= molCopyR.checkCalphas(i); 
-        
+	  bool cacaDist = molCopyR.checkCalphas(i); 
+    
+    // Logic here repeated - function!
 	  if(cacaDist==false){
 	    
 	    // calculate the new fit for this
 	    moleculeFitAndState molFitTmp = molFit ;
-	    //calculate all amino acid distances for changed molecule
 	    std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed,mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
-	    // check if we have imporved
-	    //std::cout<<"how change ? "<<fitTemp<<" "<<scatterFit<<"\n";
 	    double uProb = rng.getDistributionR();;
           
 	    if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
-
+        
+        // ol' shuffle
 	      scatterFit = fitTemp;
 	      mol[l] = molCopyR;
 	      molFit = molFitTmp;
@@ -242,7 +214,6 @@ int main( int argc, const char* argv[] ) {
   // not sure - Chris - all varying sections up for grabs?
   bool doAll = false;
 
-
 	for(int j=0;j<mol[l].getSubsecSize(i)-1;j++){
 	  //std::cout<<" mol "<<l<<" sec "<<i<<" has this many sections "<<mol[l].getSubsecSize(i)<<"\n";
 	  int totalIndex = netIndex+j;
@@ -261,6 +232,8 @@ int main( int argc, const char* argv[] ) {
 
 	    // this (checkCalphas) checks if there haven't been any rouge sections created (some occasional flaws in the procedure which are to be ironed out
 	    bool cacaDist= molCopy.checkCalphas(i,mol[l]);
+
+      // Logic here repeated - function!
 	    if(cacaDist==false){
 
 	      // calculate the new fit for this
@@ -306,12 +279,11 @@ int main( int argc, const char* argv[] ) {
     molFitAndStateSet[index] = molFit;
     molFitAndStateSet[index].updateMolecule(mol);
     sortVec(molFitAndStateSet);
-      
-    for(int i=0;i<noHistoricalFits;i++){
-      // std::cout<<"step "<<k<<" "<<i<<" "<<molFitAndStateSet[i].currFit<<"\n";
-      // logger.consoleCurrentStep(k, i, molFitAndStateSet[i].currFit);
-    }
     
+          
+    // Print out to terminal window
+    logger.consoleFitAttempt(k, improvementIndex, params, scatterFit.first, scatterFit.second);
+
     // increase k - eventually break the while loop!
     k++;
 
