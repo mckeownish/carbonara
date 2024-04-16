@@ -244,8 +244,6 @@ double  moleculeFitAndState::getDistanceConstraints(){
 
 
 
-
-
 std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax){
   scatterAndHydrationConstraint =10000.0;
   int bestHelRatList=0;
@@ -296,7 +294,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
 
    apply penalties which are "un protein like". Currently we are using
 
-     i) a very strict overlap penalty which exponetiallp penalises non local sections coming close than 4 A.
+     i) a very strict overlap penalty which exponetially penalises non local sections coming close than 4 A.
      ii) A distance constraint measure, which is only active if the user inputs a set of distance consrtrainst like contact predictions.
      iii) A writhe penalty to ensure the moelule doesn't become too disentangled.
   
@@ -311,7 +309,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
   // std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
   //calculateConnectionPenalty(mol[0],0);
   // std::cout<<"original connection Pen "<<connectionPenalty<<"\n";
-  currFit = scatterAndHydrationConstraint +overlapPenalty +distanceConstraints + writhePenalty;
+  currFit = scatterAndHydrationConstraint + overlapPenalty + distanceConstraints + writhePenalty;
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;

@@ -26,9 +26,15 @@ void readFixedDistancesConstraints(const char* argv[], std::vector<ktlMolecule>&
 // Loads in mixture file to referenced mixtureList
 void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>>& mixtureList);
 
+
 // Increase kmax range logic - changes made in place with reference
 void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitAndState>& molFitAndStateSet,
                   experimentalData& ed,  ModelParameters& params, Logger& logger);
+
+
+// make referenced change to the newMol, return bool for c-alpha check
+bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, int section);
+
 
 // Construct molecule file name - accounting for sub structure
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
@@ -74,7 +80,7 @@ public:
     double getTheAng();
     double getPhiAng();
     double getDistributionR();
-    int getChangeIndexProbability(int & k, int& noHistoricalFits, int& noScatterFitSteps);
+    int getChangeIndexProbability(int& k, ModelParameters& params);
 };
 
 #endif

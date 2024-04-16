@@ -205,6 +205,26 @@ void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitA
 // }
 
 
+bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, int section) {
+
+    // molCopy = original;  // Make a copy of the molecule
+
+    newMol.changeMoleculeSingleMulti(indexCh, section); 
+    return newMol.checkCalphas(section, existingMol);  // Check for valid structure
+
+}
+
+// std::pair<double, double> evaluateMoleculeFit(ktlMolecule& newMol, ktlMolecule& existingMol,
+//                                               moleculeFitAndState& newMolFit, moleculeFitAndState& existingMolFit,
+
+//                                               experimentalData& ed, ModelParameters params, int l) {
+    
+
+// 	std::pair<double,double> fitTemp = newMolFit.getOverallFit(ed, params.mixtureList, params.helRatList, newMol, params.kmin, params.kmaxCurr, l);
+//     return {molFitTmp, fitTemp};
+// }
+
+
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                               const int& submol, const int& improvementIndex) {
 
@@ -316,8 +336,8 @@ double RandomGenerator::getTheAng() { return theAng(generator); }
 double RandomGenerator::getPhiAng() { return phiAng(generator); }
 double RandomGenerator::getDistributionR() { return distributionR(generator); }
 
-int RandomGenerator::getChangeIndexProbability(int& k, int& noHistoricalFits, int& noScatterFitSteps) {
-    double p = 0.7 - 0.6 * (k / noScatterFitSteps);
-    std::binomial_distribution<> changeIndexProbability(noHistoricalFits - 1, p);
+int RandomGenerator::getChangeIndexProbability(int& k, ModelParameters& params) {
+    double p = 0.7 - 0.6 * (k / params.noScatterFitSteps);
+    std::binomial_distribution<> changeIndexProbability(params.noHistoricalFits - 1, p);
     return changeIndexProbability(generator);
 }

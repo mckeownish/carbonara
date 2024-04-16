@@ -51,7 +51,7 @@ int main( int argc, const char* argv[] ) {
   /* >> determine initial model: Two options no initial prediction, we must generate a structure
    or some initial structure provided. Actually we need a half-half option */
 
-  /* Read in the molecule(s) */
+  /* Initialise the molecule(s) vector */
   std::vector<ktlMolecule> mol;
   readInStructures(argv, mol, params);
   
@@ -73,35 +73,40 @@ int main( int argc, const char* argv[] ) {
   /* Random generator */
   RandomGenerator rng;
  
-  /* initialise the first fit */
-  moleculeFitAndState molFit(mol, params);
-
-  std::pair<double,double> scatterFit;
+  /* initialise the state of mol vector */
+  moleculeFitAndState molState(mol, params);
 
   int improvementIndex=0;
   // If we resume from previous run - argv[3] restart True/False
   if((strcmp(argv[3],"True") == 0)){
     improvementIndex=std::atoi(argv[17]);
   }
+
+  std::pair<double,double> overallFit = molState.getOverallFit(ed, mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   
-  moleculeFitAndState molFitOg(mol, params);
-  std::pair<double,double> scatterFitOut = molFitOg.getOverallFit(ed, mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molFitOg, ed, params.kmin, params.kmaxCurr, "initial");
-
-  // auto start = high_resolution_clock::now();
-  // auto curr = high_resolution_clock::now();
-  // auto duration = duration_cast<microseconds>(curr - start);
-
+  std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "initial");
+  // need to write an initial xyz file here and return a name!
+  
   logger.logMetadata(argv[16], params);
   
   std::string tempMolName = "temp_molecule_name";
   // log starting point
-  logger.logEntry(0, 0, scatterFitOut.first, molFitOg.getWrithePenalty(), molFitOg.getOverlapPenalty(), 
-                  molFitOg.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, tempMolName);
+  logger.logEntry(0, 0, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, tempMolName);
   
-  logger.consoleInitial(scatterFitOut.first, molFitOg.getWrithePenalty(), molFitOg.getOverlapPenalty(), molFitOg.getDistanceConstraints());
-    
+  logger.consoleInitial(overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), molState.getDistanceConstraints());
+  
+
   /* Main algorithm */
+
+  /* 
+
+     molState - moleculeFitAndState
+     overallFit - molState.getOverallFit() {.first = sum of scat/overlap/dist/writhe, .second = scat only}
+     
+   */
+
+
   // This whole section is bracket hell
   // My god - we need break stuff tf up into smaller functions
   
@@ -113,14 +118,11 @@ int main( int argc, const char* argv[] ) {
     int noSectionsTmp = mol[i].noChains();
     noSections.push_back(noSectionsTmp);
   }
-    
-  // argv[11] Max number of fitting steps
-  int noScatterFitSteps=std::atoi(argv[11]);
   
-  std::vector<moleculeFitAndState> molFitAndStateSet;
-  
+  // Add the original molState N time to the historical set
+  std::vector<moleculeFitAndState> molStateSet;
   for(int i=0;i<params.noHistoricalFits;i++){
-    molFitAndStateSet.push_back(molFit);
+    molStateSet.push_back(molState);
   }
 
   // int improvementIndexTest=0;
@@ -129,23 +131,23 @@ int main( int argc, const char* argv[] ) {
   int k=0;
 
   // This is a monster while loop - strap in chaps
-  while(k < noScatterFitSteps){
+  while(k < params.noScatterFitSteps){
     
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
-    if(scatterFit.second <0.0005 || (params.improvementIndexTest>std::round(noScatterFitSteps/5)&& scatterFit.second <0.0007)){
+    if(overallFit.second <0.0005 || (params.improvementIndexTest>std::round(params.noScatterFitSteps/5)&& overallFit.second <0.0007)){
 
-      increaseKmax(scatterFit, molFitAndStateSet, ed, params, logger);
+      increaseKmax(overallFit, molStateSet, ed, params, logger);
 
     }
     
     params.improvementIndexTest = params.improvementIndexTest + 1;
 
-    // loop over the molecules (e.g monomer and dimer fit
-
-    int index = rng.getChangeIndexProbability(k, params.noHistoricalFits, noScatterFitSteps);
-    molFit = molFitAndStateSet[index];
-    mol = molFit.getMolecule();
-    scatterFit = molFit.getFit();
+    // pick a 'random' molState from the historical molStateSet
+    // to become update function
+    int index = rng.getChangeIndexProbability(k, params);
+    molState = molStateSet[index];
+    mol = molState.getMolecule();
+    overallFit = molState.getFit();
 
     for(int l=0;l<mol.size();l++){
 
@@ -173,29 +175,26 @@ int main( int argc, const char* argv[] ) {
 	  if(cacaDist==false){
 	    
 	    // calculate the new fit for this
-	    moleculeFitAndState molFitTmp = molFit;
-	    std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed,mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
+	    moleculeFitAndState newMolState = molState;
+	    std::pair<double,double> newOverallFit = newMolState.getOverallFit(ed,mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
 	    double uProb = rng.getDistributionR();
           
-	    if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
+	    if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
         
         // ol' shuffle
-	      scatterFit = fitTemp;
+	      overallFit = newOverallFit;
 	      mol[l] = molCopyR;
-	      molFit = molFitTmp;
+	      molState = newMolState;
 
 	      // to output during fitting to "show the process"
 	      improvementIndex++;
 
         std::string moleculeNameTrans = write_molecules(argv[12], improvementIndex, mol);
-        std::string scatterNameTrans = write_scatter(argv[12], improvementIndex, molFitTmp, ed, params.kmin, params.kmaxCurr);
-
-	      // curr = high_resolution_clock::now();
-	      // duration = duration_cast<microseconds>(curr - start);
+        std::string scatterNameTrans = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
 
         // log file write
-        logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
-                        molFitTmp.getDistanceConstraints(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
+        logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                        molState.getDistanceConstraints(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
 
         logger.consoleChange("fitImprove", params);
 
@@ -225,46 +224,43 @@ int main( int argc, const char* argv[] ) {
 	    
 	    // tl;dr - copy the molecule to change it and test if we do better
 
-	    ktlMolecule molCopy = mol[l];
 
-	    int indexCh = totalIndex-netIndex;
-	    molCopy.changeMoleculeSingleMulti(indexCh,i);
+	    // molCopy.changeMoleculeSingleMulti(indexCh,i);
 
 	    // this (checkCalphas) checks if there haven't been any rouge sections created (some occasional flaws in the procedure which are to be ironed out
-	    bool cacaDist= molCopy.checkCalphas(i,mol[l]);
+	    // bool cacaDist= molCopy.checkCalphas(i,mol[l]);
+
+      int indexCh = totalIndex-netIndex;
+      ktlMolecule newMol = mol[l];
+      bool cacaDist = modifyMolecule(newMol, mol[l], indexCh, i);
 
       // Logic here repeated - function!
 	    if(cacaDist==false){
 
 	      // calculate the new fit for this
-	      moleculeFitAndState molFitTmp = molFit;
+	      moleculeFitAndState newmolState = molState;
 
 	      //calculate all amino acid distances for changed molecule
-	      std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed,mixtureList,params.helRatList,molCopy,params.kmin,params.kmaxCurr,l);
+	      std::pair<double,double> newOverallFit = newmolState.getOverallFit(ed,mixtureList,params.helRatList,newMol,params.kmin,params.kmaxCurr,l);
 
-	      // check if we have imporved
-	      //std::cout<<"how change ? "<<fitTemp<<" "<<scatterFit<<"\n";
 	      double uProb = rng.getDistributionR();
 
-	      if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
+	      if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
 
           // the ol' update shuffle
-          scatterFit = fitTemp;
-          mol[l] = molCopy;
-          molFit = molFitTmp;
+          overallFit = newOverallFit;
+          mol[l] = newMol;
+          molState = newmolState;
 
           // Success! Add to the update index
           improvementIndex++;
 
           // writing functs from helpers.cpp
           std::string moleculeNameMain = write_molecules(argv[12], improvementIndex, mol);
-          std::string scatterNameMain = write_scatter(argv[12], improvementIndex, molFitTmp, ed, params.kmin, params.kmaxCurr);
+          std::string scatterNameMain = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
 
-          // curr = high_resolution_clock::now();
-          // duration = duration_cast<microseconds>(curr - start);
-
-          logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
-                          molFitTmp.getDistanceConstraints(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
+          logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                          molState.getDistanceConstraints(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
 
 	      } // check transition end
             
@@ -276,34 +272,33 @@ int main( int argc, const char* argv[] ) {
       } // end of i for loop - noSections in each l
     } // end of l for loop - mol.size()
 
-    molFitAndStateSet[index] = molFit;
-    molFitAndStateSet[index].updateMolecule(mol);
-    sortVec(molFitAndStateSet);
-    
-          
+    // Assign the new 'improved' molcule state to the historical tracker
+    molStateSet[index] = molState;
+    molStateSet[index].updateMolecule(mol);
+    sortVec(molStateSet);
+        
     // Print out to terminal window
-    logger.consoleFitAttempt(k, improvementIndex, params, scatterFit.first, scatterFit.second);
+    logger.consoleFitAttempt(k, improvementIndex, params, overallFit.first, overallFit.second);
 
-    // increase k - eventually break the while loop!
     k++;
-
   } // end of while loop: k < noScatterFitSteps
   
   improvementIndex++;
 
-  mol = molFitAndStateSet[0].getMolecule();
+  // pull the 'best' fit from the historical tracked {remember sorted - 0 index best fitting}
+  std::vector<ktlMolecule> molBest = molStateSet[0].getMolecule();
 
   std::string moleculeNameEnd = write_molecules(argv[12], improvementIndex, mol);
-    
+  
   // regenrate molecule hydration layer to update the fit
-  moleculeFitAndState molFitOut(mol, params);
-  scatterFitOut = molFitOut.getOverallFit(ed, mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  moleculeFitAndState molStateBest(molBest, params);
+  std::pair<double,double> overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
 
   // molFitOut.writeScatteringToFile(ed,kmin,kmaxCurr,argv[13]);
-  std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molFitOut, ed, params.kmin, params.kmaxCurr, "end");
+  std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molStateBest, ed, params.kmin, params.kmaxCurr, "end");
 
-  logger.logEntry(improvementIndex, k, scatterFit.first, molFitOut.getWrithePenalty(), molFitOut.getOverlapPenalty(), 
-                  molFitOut.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
+  logger.logEntry(improvementIndex, k, overallFitBest.first, molStateBest.getWrithePenalty(), molStateBest.getOverlapPenalty(), 
+                  molStateBest.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
 
 } // end of main
       
