@@ -16,16 +16,18 @@ private:
 
     std::ofstream logFile;
     std::string escapeJSON(const std::string& s);
+    std::chrono::high_resolution_clock::time_point start;
 
 public:
 
     Logger(const std::string& filePath);
     ~Logger();
 
+    long long getElapsedTime() const;
+
     void logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst, 
-                  const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints, 
-                  const long& durationCount, const double& kmaxCurr, const std::string& scatterPath,
-                  const std::string& moleculePath);
+                  const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints,
+                  const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath);
 
     void logMetadata(const std::string& run, ModelParameters params);
 

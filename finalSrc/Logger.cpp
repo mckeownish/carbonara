@@ -1,10 +1,14 @@
 #include "Logger.h"
 
 Logger::Logger(const std::string& filePath) {
+
     logFile.open(filePath, std::ios::out | std::ios::app);
+
     if (!logFile.is_open()) {
         std::cerr << "Failed to open log file: " << filePath << std::endl;
     }
+
+    start = std::chrono::high_resolution_clock::now();
 }
 
 Logger::~Logger() {
@@ -13,12 +17,19 @@ Logger::~Logger() {
     }
 }
 
+long long Logger::getElapsedTime() const {
+
+        auto now = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+    }
+
 void Logger::logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst, 
-                      const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints, 
-                      const long& durationCount, const double& kmaxCurr, const std::string& scatterPath,
-                      const std::string& moleculePath) {
+                      const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints,
+                      const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath) {
 
     if (logFile.is_open()) {
+
+        long long elapsed = getElapsedTime();
 
         logFile << "{";
         logFile << "\"ImprovementIndex\": " << improvementIndex << ", ";
@@ -27,7 +38,8 @@ void Logger::logEntry(const int& improvementIndex, const int& fitStep, const dou
         logFile << "\"WrithePenalty\": " << writhePenalty << ", ";
         logFile << "\"OverlapPenalty\": " << overlapPenalty << ", ";
         logFile << "\"DistanceConstraints\": " << distanceConstraints << ", ";
-        logFile << "\"DurationCount\": " << durationCount << ", ";
+        // logFile << "\"DurationCount\": " << durationCount << ", ";
+        logFile << "\"ElapsedTime(µs)\": " << elapsed << ", ";
         logFile << "\"KmaxCurr\": " << kmaxCurr << ", ";
         logFile << "\"ScatterPath\": \"" << escapeJSON(scatterPath) << "\"" << ", ";
         logFile << "\"MoleculePath\": \"" << escapeJSON(moleculePath) << "\"";

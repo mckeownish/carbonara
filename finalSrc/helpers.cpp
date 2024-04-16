@@ -165,35 +165,23 @@ void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitA
 
     params.improvementIndexTest=0;
     // generate a new first fit.
-    scatterFit = molFitAndStateSet[0].getOverallFit(ed,params.mixtureList,params.helRatList,params.kmin,params.kmaxCurr);
+    scatterFit = molFitAndStateSet[0].getOverallFit(ed, params.mixtureList,params.helRatList,params.kmin,params.kmaxCurr);
 
 }
 
-// void update
+// void updateMolecule(ktlMolecule& molCopy, moleculeFitAndState& molFit, experimentalData& ed, ModelParameters& params, RandomGenerator& rng, int l) {
+// void updateMolecule(ktlMolecule& molCopy, moleculeFitAndState& molFit, std::pair<double,double> scatterFit, std::pair<double,double> fitTemp,
+//                     ModelParameters& params, ) {
 
-// ktlMolecule molCopy = mol[l];
+//         // moleculeFitAndState molFitTmp = molFit;
 
-// 	    int indexCh = totalIndex-netIndex;
-// 	    molCopy.changeMoleculeSingleMulti(indexCh,i);
+//         // std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed, params.mixtureList, params.helRatList,molCopy,params.kmin,params.kmaxCurr,l);
 
-// 	    // this (checkCalphas) checks if there haven't been any rouge sections created (some occasional flaws in the procedure which are to be ironed out
-// 	    bool cacaDist= molCopy.checkCalphas(i,mol[l]);
+//         // double uProb = rng.getDistributionR();
 
-// if(cacaDist==false){
+//     // if(checkTransition(fitTemp.first, scatterFit.first, uProb, k, params.noScatterFitSteps)){
 
-//     // calculate the new fit for this
-//     moleculeFitAndState molFitTmp = molFit;
-
-//     //calculate all amino acid distances for changed molecule
-//     std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed,mixtureList,params.helRatList,molCopy,params.kmin,params.kmaxCurr,l);
-
-//     // check if we have imporved
-//     //std::cout<<"how change ? "<<fitTemp<<" "<<scatterFit<<"\n";
-//     double uProb = rng.getDistributionR();
-
-//     if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
-
-//     // the ol' update shuffle
+//         // the ol' update shuffle
 //     scatterFit = fitTemp;
 //     mol[l] = molCopy;
 //     molFit = molFitTmp;
@@ -211,9 +199,10 @@ void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitA
 //     logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
 //                     molFitTmp.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
 
-//     } // check transition end
 
-//     } // if cacaDist == False (after making a random change) end
+//     } 
+
+// }
 
 
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,

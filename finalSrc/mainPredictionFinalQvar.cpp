@@ -88,16 +88,16 @@ int main( int argc, const char* argv[] ) {
   std::pair<double,double> scatterFitOut = molFitOg.getOverallFit(ed, mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molFitOg, ed, params.kmin, params.kmaxCurr, "initial");
 
-  auto start = high_resolution_clock::now();
-  auto curr = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(curr - start);
+  // auto start = high_resolution_clock::now();
+  // auto curr = high_resolution_clock::now();
+  // auto duration = duration_cast<microseconds>(curr - start);
 
   logger.logMetadata(argv[16], params);
   
   std::string tempMolName = "temp_molecule_name";
   // log starting point
   logger.logEntry(0, 0, scatterFitOut.first, molFitOg.getWrithePenalty(), molFitOg.getOverlapPenalty(), 
-                  molFitOg.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameInitial, tempMolName);
+                  molFitOg.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, tempMolName);
   
   logger.consoleInitial(scatterFitOut.first, molFitOg.getWrithePenalty(), molFitOg.getOverlapPenalty(), molFitOg.getDistanceConstraints());
     
@@ -173,9 +173,9 @@ int main( int argc, const char* argv[] ) {
 	  if(cacaDist==false){
 	    
 	    // calculate the new fit for this
-	    moleculeFitAndState molFitTmp = molFit ;
+	    moleculeFitAndState molFitTmp = molFit;
 	    std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed,mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
-	    double uProb = rng.getDistributionR();;
+	    double uProb = rng.getDistributionR();
           
 	    if(checkTransition(fitTemp.first,scatterFit.first,uProb,k,noScatterFitSteps)){
         
@@ -190,12 +190,12 @@ int main( int argc, const char* argv[] ) {
         std::string moleculeNameTrans = write_molecules(argv[12], improvementIndex, mol);
         std::string scatterNameTrans = write_scatter(argv[12], improvementIndex, molFitTmp, ed, params.kmin, params.kmaxCurr);
 
-	      curr = high_resolution_clock::now();
-	      duration = duration_cast<microseconds>(curr - start);
+	      // curr = high_resolution_clock::now();
+	      // duration = duration_cast<microseconds>(curr - start);
 
         // log file write
         logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
-                        molFitTmp.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
+                        molFitTmp.getDistanceConstraints(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
 
         logger.consoleChange("fitImprove", params);
 
@@ -260,11 +260,11 @@ int main( int argc, const char* argv[] ) {
           std::string moleculeNameMain = write_molecules(argv[12], improvementIndex, mol);
           std::string scatterNameMain = write_scatter(argv[12], improvementIndex, molFitTmp, ed, params.kmin, params.kmaxCurr);
 
-          curr = high_resolution_clock::now();
-          duration = duration_cast<microseconds>(curr - start);
+          // curr = high_resolution_clock::now();
+          // duration = duration_cast<microseconds>(curr - start);
 
           logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
-                          molFitTmp.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
+                          molFitTmp.getDistanceConstraints(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
 
 	      } // check transition end
             
@@ -303,7 +303,7 @@ int main( int argc, const char* argv[] ) {
   std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molFitOut, ed, params.kmin, params.kmaxCurr, "end");
 
   logger.logEntry(improvementIndex, k, scatterFit.first, molFitOut.getWrithePenalty(), molFitOut.getOverlapPenalty(), 
-                  molFitOut.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
+                  molFitOut.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
 
 } // end of main
       
