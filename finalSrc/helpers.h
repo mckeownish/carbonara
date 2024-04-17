@@ -23,8 +23,14 @@ void determineVaryingSections(const char* argv[], std::vector<std::vector<int>>&
 // Loads in (if availible) contanct constraints to referenced mol class
 void readFixedDistancesConstraints(const char* argv[], std::vector<ktlMolecule>& mol);
 
-// Loads in mixture file to referenced mixtureList
-void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>>& mixtureList);
+// Loads in mixture file into parameters
+void readPermissibleMixtures(const char* argv[], ModelParameters& params);
+
+// find number of subsections in each molecule - e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
+std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol);
+
+// construct the historical states set
+std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& molState, ModelParameters& params);
 
 
 // Increase kmax range logic - changes made in place with reference
@@ -34,6 +40,12 @@ void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitA
 
 // make referenced change to the newMol, return bool for c-alpha check
 bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, int section);
+
+// update mol, molState, overallFit and write result to log
+void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolecule& newMol,
+                  moleculeFitAndState& molState, moleculeFitAndState& newMolState, 
+                  std::pair<double,double>& overallFit, std::pair<double,double>& newOverallFit,
+                  Logger& logger, int l, int k, experimentalData& ed, ModelParameters& params);
 
 
 // Construct molecule file name - accounting for sub structure

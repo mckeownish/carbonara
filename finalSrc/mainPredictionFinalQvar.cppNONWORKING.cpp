@@ -74,6 +74,12 @@ int main( int argc, const char* argv[] ) {
   /* initialise the state of mol vector */
   moleculeFitAndState molState(mol, params);
 
+  /* initialise the set of historical states - currently basic, but used to save previous fit stages */
+  std::vector<moleculeFitAndState> molStateSet = makeHistoricalStateSet(molState, params); 
+  
+  /* find number of sections in each molecule in mol (vector <ktlMolecule>) */
+  std::vector<int> noSections = findNumberSections(mol);
+
   int improvementIndex=0;
   // If we resume from previous run - argv[3] restart True/False
   if((strcmp(argv[3],"True") == 0)){
@@ -82,48 +88,40 @@ int main( int argc, const char* argv[] ) {
 
   std::pair<double,double> overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   
-  logger.logMetadata(argv[16], params);
-
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "initial");
-  // need to write an initial xyz file here and return a name
+  // need to write an initial xyz file here and return a name!
+  
+  logger.logMetadata(argv[16], params);
+  
   std::string tempMolName = "temp_molecule_name";
-
   // log starting point
   logger.logEntry(0, 0, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
                   molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, tempMolName);
   
+
   logger.consoleInitial(overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), molState.getDistanceConstraints());
   
-
   /* Main algorithm */
 
   /* 
 
-     molState - moleculeFitAndState
+     mol - vector < ktlMolecule  >
+     molState - moleculeFitAndState (mol, params)
      overallFit - molState.getOverallFit() {.first = sum of scat/overlap/dist/writhe, .second = scat only}
      
    */
 
-  // This whole section is bracket hell
-  // we need break stuff up into smaller functions
-  
-  // noSections vector tells us how many subsections are in each molecule
-  // e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
-  /* find number of sections in each molecule in mol (vector <ktlMolecule>) */
-  std::vector<int> noSections = findNumberSections(mol);
-
-  /* initialise the set of historical states - currently basic, but used to save previous fit stages */
-  std::vector<moleculeFitAndState> molStateSet = makeHistoricalStateSet(molState, params);
-  
-  // loop number
+  // while loop - number of fit steps
   int k=0;
-
   // This is a monster while loop - strap in chaps
   while(k < params.noScatterFitSteps){
     
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
     if(overallFit.second <0.0005 || (params.improvementIndexTest>std::round(params.noScatterFitSteps/5)&& overallFit.second <0.0007)){
+      
+      std::cout << "Updated now";
       increaseKmax(overallFit, molStateSet, ed, params, logger);
+
     }
     
     params.improvementIndexTest = params.improvementIndexTest + 1;
@@ -162,19 +160,33 @@ int main( int argc, const char* argv[] ) {
 	    
 	    // calculate the new fit for this
 	    moleculeFitAndState newMolState = molState;
-	    std::pair<double,double> newOverallFit = newMolState.getOverallFit(ed,params.mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
+	    std::pair<double,double> newOverallFit = newMolState.getOverallFit(ed, params.mixtureList, params.helRatList, molCopyR, params.kmin, params.kmaxCurr, l);
 	    double uProb = rng.getDistributionR();
           
 	    if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
+        
+        // ol' shuffle
+	      overallFit = newOverallFit;
+	      mol[l] = molCopyR;
+	      molState = newMolState;
 
+	      // to output during fitting to "show the process"
 	      improvementIndex++;
-        updateAndLog(improvementIndex, mol, molCopyR, molState, newMolState, overallFit, newOverallFit, logger, l, k, ed, params);
+
+        std::string moleculeNameTrans = write_molecules(argv[12], improvementIndex, mol);
+        std::string scatterNameTrans = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
+
+        // log file write
+        logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                        molState.getDistanceConstraints(), params.kmaxCurr, scatterNameTrans, moleculeNameTrans);
 
         logger.consoleChange("fitImprove", params);
-	    } 
-	  }
+
+	    } // transition check end
+	  } // cacaDist end§
 	} // rotate/translate section ends
 
+	
 	// net index tells us how far we are through the whole moelcule
 	if(i>1){
 	  netIndex=netIndex+mol[l].getSubsecSize(i-1);
@@ -183,7 +195,7 @@ int main( int argc, const char* argv[] ) {
   // not sure - Chris - all varying sections up for grabs?
   bool doAll = false;
 
-  // Now loop over the secondary structures of the given unit or section
+	// Now loop over the secondary structures of the given unit or section
 	for(int j=0;j<mol[l].getSubsecSize(i)-1;j++){
 	  //std::cout<<" mol "<<l<<" sec "<<i<<" has this many sections "<<mol[l].getSubsecSize(i)<<"\n";
 	  int totalIndex = netIndex+j;
@@ -203,32 +215,44 @@ int main( int argc, const char* argv[] ) {
       // Logic here repeated - function!
 	    if(cacaDist==false){
 
-	      // calculate the new fit for this?
-        // Question for chris - how does this account for the updated molecule - how does getOverallFit passed info on the new mol?  
-        // previously ca accepted only? - 
-	      moleculeFitAndState newmolState = molState;
+	      // calculate the new fit for this
+	      moleculeFitAndState newMolState = molState;
 
-	      //calculate the fitting of changed molecule
-	      std::pair<double,double> newOverallFit = newmolState.getOverallFit(ed,params.mixtureList,params.helRatList,newMol,params.kmin,params.kmaxCurr,l);
+	      //calculate all amino acid distances for changed molecule
+	      std::pair<double,double> newOverallFit = newMolState.getOverallFit(ed, params.mixtureList, params.helRatList, newMol, params.kmin, params.kmaxCurr, l);
 
 	      double uProb = rng.getDistributionR();
 
 	      if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
-
-           // Success! Add to the update index
+          
           improvementIndex++;
-          updateAndLog(improvementIndex, mol, newMol, molState, newmolState, overallFit, newOverallFit, logger, l, k, ed, params);
-          logger.consoleChange("fitImprove", params);
-        }
-	    } 
-	  } // if doAll ..
+
+          // updateAndLog(improvementIndex, mol, newMol, molState, newMolState, overallFit, newOverallFit, logger, l, k, ed, params);
+
+          // the ol' update shuffle
+          overallFit = newOverallFit;
+          mol[l] = newMol;
+          molState = newMolState;
+
+          // Success! Add to the update index
+          
+
+          // writing functs from helpers.cpp
+          std::string moleculeNameMain = write_molecules(argv[12], improvementIndex, mol);
+          std::string scatterNameMain = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
+
+          logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                          molState.getDistanceConstraints(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
+
+	      } // check transition end
+            
+	    } // if cacaDist == False (after making a random change) end
+	  } // if doAll &
 
 	} // end of j for loop - number of subsections (getSubsecSize)
 
       } // end of i for loop - noSections in each l
     } // end of l for loop - mol.size()
-
-    // ngl this ^^ {} situ is a bit of a mess haha
 
     // Assign the new 'improved' molcule state to the historical tracker
     molStateSet[index] = molState;
@@ -236,6 +260,7 @@ int main( int argc, const char* argv[] ) {
     sortVec(molStateSet);
         
     // Print out to terminal window
+    std::cout << "cout overall fit " << overallFit.first << "\n";
     logger.consoleFitAttempt(k, improvementIndex, params, overallFit.first, overallFit.second);
 
     k++;

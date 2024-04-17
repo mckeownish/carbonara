@@ -105,8 +105,8 @@ void readFixedDistancesConstraints(const char* argv[], std::vector<ktlMolecule>&
 }
 
 
-// Loads in mixture file to referenced mixtureList
-void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>>& mixtureList) {
+// Loads in mixture file into parameters
+void readPermissibleMixtures(const char* argv[], ModelParameters& params) {
     
     std::string filePath = argv[14];
 
@@ -116,6 +116,7 @@ void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>
         return;
     }
 
+    std::vector<std::vector<double>> mixtureList;
     std::string line;
 
     while( std::getline(permissibleMixtureFile,line) ) {
@@ -148,7 +149,37 @@ void readPermissibleMixtures(const char* argv[], std::vector<std::vector<double>
     if (mixtureList.empty()) {
       std::cerr << "No valid mixtures were read from the file: " << filePath << std::endl;
     }
+
+    // update parameters with the mixture list!
+    params.mixtureList = mixtureList;
 }
+
+// find number of subsections in each molecule - e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
+std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol) {
+    
+    std::vector<int> noSections;
+    
+    for(int i=0;i<mol.size();i++){
+        int subsections = mol[i].noChains();
+        noSections.push_back(subsections);
+    }
+
+    return noSections;
+
+}
+
+// Add the original molState N time to the historical set
+std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& molState, ModelParameters& params){
+
+    std::vector<moleculeFitAndState> molStateSet;
+
+    for(int i=0;i<params.noHistoricalFits;i++){
+        molStateSet.push_back(molState);
+    }
+
+    return molStateSet;
+}
+
 
 
 void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitAndState>& molFitAndStateSet,
@@ -225,6 +256,24 @@ bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, 
 // }
 
 
+void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolecule& newMol,
+                  moleculeFitAndState& molState, moleculeFitAndState& newMolState, 
+                  std::pair<double,double>& overallFit, std::pair<double,double>& newOverallFit,
+                  Logger& logger, int l, int k, experimentalData& ed, ModelParameters& params) {
+    
+    mol[l] = newMol;
+    molState = newMolState;
+    overallFit = newOverallFit;
+
+    std::string moleculeNameMain = write_molecules(params.basePath, improvementIndex, mol);
+    std::string scatterNameMain = write_scatter(params.basePath, improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
+
+    logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                    molState.getDistanceConstraints(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
+
+}
+
+
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                               const int& submol, const int& improvementIndex) {
 
@@ -287,6 +336,7 @@ std::string write_scatter(const std::string& basePath, const int& improvementInd
 
 
 bool checkTransition(double &chiSqVal, double &chiSqCurr,double &uniformProb,int index,int &maxSteps){
+
 
   if(chiSqVal<chiSqCurr){
     return true;

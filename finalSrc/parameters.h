@@ -28,9 +28,11 @@ struct ModelParameters {
     double kmaxCurr = 0.0;
     int noScatterFitSteps = 5000;
     bool affineTrans=false;
+
     std::vector<double> helRatList;
     std::vector< std::vector<double> > mixtureList;
-    
+    std::string basePath;
+
     int improvementIndexTest = 0;
     int noHistoricalFits = 1;
     

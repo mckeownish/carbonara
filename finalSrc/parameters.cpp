@@ -32,5 +32,7 @@ ModelParameters loadParameters(const char* argv[]) {
     // logic for helRatList --change?
     params.helRatList.push_back(0.5);
 
+    params.basePath = argv[12];
+
     return params;
 }
