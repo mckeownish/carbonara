@@ -1,6 +1,5 @@
 #include "helpers.h"
 
-
 // Loads in structural data to referenced mol class
 void readInStructures(const char* argv[], std::vector<ktlMolecule>& mol, ModelParameters& params) {
 
@@ -154,6 +153,7 @@ void readPermissibleMixtures(const char* argv[], ModelParameters& params) {
     params.mixtureList = mixtureList;
 }
 
+
 // find number of subsections in each molecule - e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
 std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol) {
     
@@ -169,6 +169,7 @@ std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol) {
 }
 
 // Add the original molState N time to the historical set
+// create HistoricalStateSet Class - help develop search algorithms
 std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& molState, ModelParameters& params){
 
     std::vector<moleculeFitAndState> molStateSet;
@@ -179,7 +180,6 @@ std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& mol
 
     return molStateSet;
 }
-
 
 
 void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitAndState>& molFitAndStateSet,
@@ -200,41 +200,6 @@ void increaseKmax(std::pair<double,double>& scatterFit, std::vector<moleculeFitA
 
 }
 
-// void updateMolecule(ktlMolecule& molCopy, moleculeFitAndState& molFit, experimentalData& ed, ModelParameters& params, RandomGenerator& rng, int l) {
-// void updateMolecule(ktlMolecule& molCopy, moleculeFitAndState& molFit, std::pair<double,double> scatterFit, std::pair<double,double> fitTemp,
-//                     ModelParameters& params, ) {
-
-//         // moleculeFitAndState molFitTmp = molFit;
-
-//         // std::pair<double,double> fitTemp = molFitTmp.getOverallFit(ed, params.mixtureList, params.helRatList,molCopy,params.kmin,params.kmaxCurr,l);
-
-//         // double uProb = rng.getDistributionR();
-
-//     // if(checkTransition(fitTemp.first, scatterFit.first, uProb, k, params.noScatterFitSteps)){
-
-//         // the ol' update shuffle
-//     scatterFit = fitTemp;
-//     mol[l] = molCopy;
-//     molFit = molFitTmp;
-
-//     // Success! Add to the update index
-//     improvementIndex++;
-
-//     // writing functs from helpers.cpp
-//     std::string moleculeNameMain = write_molecules(argv[12], improvementIndex, mol);
-//     std::string scatterNameMain = write_scatter(argv[12], improvementIndex, molFitTmp, ed, params.kmin, params.kmaxCurr);
-
-//     curr = high_resolution_clock::now();
-//     duration = duration_cast<microseconds>(curr - start);
-
-//     logger.logEntry(improvementIndex, k, scatterFit.first, molFitTmp.getWrithePenalty(), molFitTmp.getOverlapPenalty(), 
-//                     molFitTmp.getDistanceConstraints(), duration.count(), params.kmaxCurr, scatterNameMain, moleculeNameMain);
-
-
-//     } 
-
-// }
-
 
 bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, int section) {
 
@@ -244,16 +209,6 @@ bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, 
     return newMol.checkCalphas(section, existingMol);  // Check for valid structure
 
 }
-
-// std::pair<double, double> evaluateMoleculeFit(ktlMolecule& newMol, ktlMolecule& existingMol,
-//                                               moleculeFitAndState& newMolFit, moleculeFitAndState& existingMolFit,
-
-//                                               experimentalData& ed, ModelParameters params, int l) {
-    
-
-// 	std::pair<double,double> fitTemp = newMolFit.getOverallFit(ed, params.mixtureList, params.helRatList, newMol, params.kmin, params.kmaxCurr, l);
-//     return {molFitTmp, fitTemp};
-// }
 
 
 void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolecule& newMol,
@@ -265,7 +220,7 @@ void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolec
     molState = newMolState;
     overallFit = newOverallFit;
 
-    std::string moleculeNameMain = write_molecules(params.basePath, improvementIndex, mol);
+    std::string moleculeNameMain = write_molecules(params.basePath, improvementIndex, mol, "default");
     std::string scatterNameMain = write_scatter(params.basePath, improvementIndex, molState, ed, params.kmin, params.kmaxCurr);
 
     logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
@@ -275,15 +230,20 @@ void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolec
 
 
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
-                              const int& submol, const int& improvementIndex) {
+                                  const int& submol, const int& improvementIndex, const std::string& body) {
 
     std::stringstream ss;
 
-    ss << basePath << "_" << prefix << "_sub_" <<  submol << "_step_" << improvementIndex << extension;
+    if (body == "initial") { ss << basePath << "_sub_" << submol << "_initial_xyz" << extension;  }
 
+    else if (body == "end") { ss << basePath << "_sub_" << submol << "_end_xyz" << extension; }
+    
+    else { ss << basePath << "_sub_" << submol << "_step_" << improvementIndex << "_xyz" << extension; }
+    
     return ss.str();
 
 }
+
 
 std::string constructScatterName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                                  const int& improvementIndex, const std::string& body) {
@@ -291,35 +251,30 @@ std::string constructScatterName(const std::string& basePath, const std::string&
     std::stringstream ss;
 
     // Check the value of body and adjust the filename accordingly
-    if (body == "initial") {
-        ss << basePath << "_InitialScatter" << extension;
-
-    } else if (body == "end") {
-        ss << basePath << "_EndScatter" << extension;
-
-    // default main
-    } else {
-        ss << basePath << "_" << prefix << "_step_" << improvementIndex << extension;
-    }
+    if (body == "initial") { ss << basePath << "_initial_scatter" << extension; }
+    
+    else if (body == "end") { ss << basePath << "_end_scatter" << extension; }
+    
+    else { ss << basePath << "_step_" << improvementIndex << "_scatter" << extension; }
 
     return ss.str();
 
 }
 
 
-std::string write_molecules(const std::string& basePath, const int& improvementIndex, std::vector<ktlMolecule>& mol) {
+std::string write_molecules(const std::string& basePath, const int& improvementIndex, std::vector<ktlMolecule>& mol, const std::string& body) {
     
     std::string moleculeName; 
 
     for(int i=0; i<mol.size(); i++) {  
-        
-        moleculeName = constructMoleculeName(basePath, "xyz", ".dat", i, improvementIndex);
-        mol[i].writeMoleculeToFile(moleculeName.c_str());
 
+        moleculeName = constructMoleculeName(basePath, "xyz", ".dat", i, improvementIndex, body);
+        mol[i].writeMoleculeToFile(moleculeName.c_str());
     }
 
     return moleculeName;
 }
+
 
 std::string write_scatter(const std::string& basePath, const int& improvementIndex, moleculeFitAndState& molFit,
                           experimentalData& ed, double kmin, double kmaxCurr, const std::string& body) {
@@ -337,12 +292,9 @@ std::string write_scatter(const std::string& basePath, const int& improvementInd
 
 bool checkTransition(double &chiSqVal, double &chiSqCurr,double &uniformProb,int index,int &maxSteps){
 
+  if(chiSqVal<chiSqCurr) { return true; }
 
-  if(chiSqVal<chiSqCurr){
-    return true;
-  }else{
-    return false;
-  }
+  else { return false; }
 }
 
 

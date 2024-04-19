@@ -85,12 +85,11 @@ int main( int argc, const char* argv[] ) {
   logger.logMetadata(argv[16], params);
 
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "initial");
-  // need to write an initial xyz file here and return a name
-  std::string tempMolName = "temp_molecule_name";
+  std::string xyzNameInitial = write_molecules(argv[12], improvementIndex, mol, "initial");
 
   // log starting point
   logger.logEntry(0, 0, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
-                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, tempMolName);
+                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, xyzNameInitial);
   
   logger.consoleInitial(overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), molState.getDistanceConstraints());
   
@@ -203,9 +202,6 @@ int main( int argc, const char* argv[] ) {
       // Logic here repeated - function!
 	    if(cacaDist==false){
 
-	      // calculate the new fit for this?
-        // Question for chris - how does this account for the updated molecule - how does getOverallFit passed info on the new mol?  
-        // previously ca accepted only? - 
 	      moleculeFitAndState newmolState = molState;
 
 	      //calculate the fitting of changed molecule
@@ -246,7 +242,7 @@ int main( int argc, const char* argv[] ) {
   // pull the 'best' fit from the historical tracked {remember sorted - 0 index best fitting}
   std::vector<ktlMolecule> molBest = molStateSet[0].getMolecule();
 
-  std::string moleculeNameEnd = write_molecules(argv[12], improvementIndex, mol);
+  std::string moleculeNameEnd = write_molecules(argv[12], improvementIndex, mol, "end");
   
   // regenrate molecule hydration layer to update the fit
   moleculeFitAndState molStateBest(molBest, params);

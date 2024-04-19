@@ -50,14 +50,14 @@ void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolec
 
 // Construct molecule file name - accounting for sub structure
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
-                                  const int& submol, const int& improvementIndex);
+                                  const int& submol, const int& improvementIndex, const std::string& body);
 
 // Construct scattering file name 
 std::string constructScatterName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                                  const int& improvementIndex, const std::string& body);
 
 // writes all sub-molecules of vector[ktlMolecule object] to files
-std::string write_molecules(const std::string& basePath, const int& improvementIndex, std::vector<ktlMolecule>& mol);
+std::string write_molecules(const std::string& basePath, const int& improvementIndex, std::vector<ktlMolecule>& mol, const std::string& body);
 
 // writes simulated scattering to file and returns the scatterName (scatterName needed for logging!)
 std::string write_scatter(const std::string& basePath, const int& improvementIndex, moleculeFitAndState& molFit,
