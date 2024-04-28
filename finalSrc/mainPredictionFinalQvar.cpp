@@ -41,7 +41,8 @@ using namespace std::chrono;
  --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
 int main( int argc, const char* argv[] ) {
-
+  std::cout << argv[12];
+  std::cout << argv[16];
   /* initialise the log file */
   Logger logger(argv[16]);
 
