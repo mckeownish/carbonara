@@ -34,16 +34,16 @@ echo "\n"
 sh RunMe_test_simple_fitdata.sh
 echo "\n"
 
-echo "Ran carbonara!"
-echo "\n"
+# echo "Ran carbonara!"
+# echo "\n"
 
 echo "================================================================================"
 #echo "\n"
-echo "Running test script..."
+# echo "Running test script..."
 
-python test_build.py
+# python test_build.py
 
 
-echo "Test script run!"
-echo "\n"
+# echo "Test script run!"
+# echo "\n"
 

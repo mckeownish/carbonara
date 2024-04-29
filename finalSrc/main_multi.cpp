@@ -298,7 +298,7 @@ void manageTasks(int totalTasks, int maxConcurrent, int argc, const char* argv[]
 /* Main for worker parallelism */
 int main(int argc, const char* argv[]) {
 
-    int totalTasks = 30; // Total number of tasks to process
+    int totalTasks = 300; // Total number of tasks to process
     int maxConcurrent = 5; // Maximum number of concurrent tasks
 
     manageTasks(totalTasks, maxConcurrent, argc, argv);

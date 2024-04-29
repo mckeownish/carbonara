@@ -8,7 +8,8 @@ experimentalData::experimentalData(const char* scatterFile){
   std::ifstream scatterdat;
   scatterdat.open(scatterFile);
   std::string sctline;
-  double kval;double Ival;
+  double kval; double Ival;
+
   if(scatterdat.is_open()){
      while(!scatterdat.eof()){
       std::getline(scatterdat,sctline);
@@ -16,6 +17,8 @@ experimentalData::experimentalData(const char* scatterFile){
       ss>>kval;
       ss.ignore();
       ss>>Ival;
+
+      // std::cout << "\n kval: " << kval << ", Ival: " << Ival  << "\n";
       std::pair<double,double> pr;
       pr.first=kval;pr.second=Ival;
       scatVec.push_back(pr);
@@ -26,9 +29,11 @@ experimentalData::experimentalData(const char* scatterFile){
   // set the minimum and maximum possibe k values, given the data
   absKmin = scatVec[0].first;
   absKmax = scatVec[scatVec.size()-1].first;
-  /************************
+  // std::cout << "\n scattering vector size: " << scatVec.size() << "\n";
+  /************************SS
      load in the scattering function paramers 
    ***********************/
+
   std::ifstream myfile;
   std::string output;
   myfile.open("averagedSolutions/3_4BeadParams.dat");
@@ -110,24 +115,31 @@ double experimentalData::hydrationScatter(double &s){
 bool experimentalData::binDataCheck(double &dMax,double &qmin,double &qmax){
   double dr = dMax/double(noDistBins);
   double dq = (qmax-qmin)/double(noDistBins);
+
   bool goodsplit=true;
   int k=0;
   for(int j=1;j<=noDistBins;j++){
-    double q =qmin+(j-0.5)*dq;
-    double qminBin = qmin+(j-1)*dq;
-    double qmaxBin = qmin+j*dq;
+    double q = qmin + (j-0.5)*dq;
+    double qminBin = qmin + (j-1)*dq;
+    double qmaxBin = qmin + j*dq;
     std::vector<double> intensities;
     // if we have selected a higher q than the lowest experimental data, seacrch for the minimum point
     while(scatVec[k].first<qminBin){
       k++;
     }
-    while(scatVec[k].first>qminBin &&scatVec[k].first<=qmaxBin){
+    // std::cout << "\n j: " << j << ", qminBin: " << qminBin << ", qmaxBin: " << qmaxBin <<", scatVec[k] first: " << scatVec[k].first << ", scatVec[k] second: " << scatVec[k].second << "\n";
+
+    while(scatVec[k].first>=qminBin &&scatVec[k].first<=qmaxBin){
+
           intensities.push_back(scatVec[k].second);
           k++;
     }
     if(intensities.size()<2){
       goodsplit=false;
     }
+
+    // std::cout << "\n j: " << j << ", intensity size: " << intensities.size() << "\n";
+
   }
   return  goodsplit;
 }
@@ -135,18 +147,25 @@ bool experimentalData::binDataCheck(double &dMax,double &qmin,double &qmax){
 
 int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
   int noDistBinsTemp = int(2.1*std::ceil((qmax-qmin)*dMax/3.14159265359));
+  // std::cout<<"\n no dist bins tmp " << noDistBinsTemp << "\n";
+  // std::cout<<"\n no dist bins glb " << noDistBins << "\n";
+
   if(noDistBins!=noDistBinsTemp){
     noDistBins=noDistBinsTemp;
+    // std::cout<<"\n no dist bins A " << noDistBins << "\n";
+
     //check if we can bin
     bool binsOk=false;
     // check we can bin the data with this number of bins
     while(binsOk==false && noDistBins>2){
-      binsOk= binDataCheck(dMax,qmin,qmax);
+      binsOk = binDataCheck(dMax,qmin,qmax);
       if(binsOk==false){
 	noDistBins=noDistBins-1;
+  // std::cout<<"\n no dist bins check: " << noDistBins << "\n";
+
       }
     }
-    //std::cout<<"no dist bins "<<dMax<<" "<<noDistBins<<"\n";
+    // std::cout<<"\n no dist bins " << dMax <<" " << qmin <<" " << qmax <<" "<<noDistBins<<"\n";
     double dr = dMax/double(noDistBins);
     double dq = (qmax-qmin)/double(noDistBins);
     experimentalIntensity.clear();distBins.clear();scatPhases.clear();
@@ -176,7 +195,7 @@ int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
 	  while(scatVec[k].first<qminBin){
 	    k++;
 	  }
-	  while(scatVec[k].first>qminBin &&scatVec[k].first<=qmaxBin){
+	  while(scatVec[k].first>=qminBin &&scatVec[k].first<=qmaxBin){
 	    intensities.push_back(scatVec[k].second);
 	    if(scatVec[k].second>0.0){
 	      double loggedInten = std::log(scatVec[k].second);
@@ -208,6 +227,7 @@ int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
     }
   }
   // now take the median of the scattering data
+  // std::cout<<"\n fin setPhases * \n";
   return noDistBins;
 }
 

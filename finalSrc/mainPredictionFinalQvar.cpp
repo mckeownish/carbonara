@@ -41,12 +41,14 @@ using namespace std::chrono;
  --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
 int main( int argc, const char* argv[] ) {
-  std::cout << argv[12];
-  std::cout << argv[16];
+  // std::cout << argv[12];
+  // std::cout << argv[16];
   /* initialise the log file */
+  std::cout << "pre-logger * ";
   Logger logger(argv[16]);
 
   /* Set up model parameters */
+  std::cout << "pre-params read * ";
   ModelParameters params = loadParameters(argv);
 
   /* >> determine initial model: Two options no initial prediction, we must generate a structure
@@ -54,25 +56,31 @@ int main( int argc, const char* argv[] ) {
 
   /* Initialise the molecule(s) vector */
   std::vector<ktlMolecule> mol;
+  std::cout << "pre-mol read * ";
   readInStructures(argv, mol, params);
   
   /* Determine which sections are being altered */
   std::vector< std::vector<int> > vary_sec_list_list;
+  std::cout << "pre-varysec read * ";
   determineVaryingSections(argv, vary_sec_list_list);
     
   /* Read in any fixed distances constraints (contact predictions/sulfide bonds) */
+  std::cout << "pre-dist-const read * ";
   readFixedDistancesConstraints(argv, mol);
 
   /* Read in the permissible mixture list */
+  std::cout << "pre-permiss read * ";
   readPermissibleMixtures(argv, params);
   
   /* Read in the scattering and set up the scattering model */
+  std::cout << "pre-ed read * ";
   experimentalData ed(argv[1]);
 
   /* Random generator */
   RandomGenerator rng;
  
   /* initialise the state of mol vector */
+  std::cout << "pre-molState read * \n";
   moleculeFitAndState molState(mol, params);
 
   int improvementIndex=0;
@@ -81,8 +89,10 @@ int main( int argc, const char* argv[] ) {
     improvementIndex=std::atoi(argv[17]);
   }
 
+  std::cout << "pre-initial overallFit * \n";
   std::pair<double,double> overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   
+  std::cout << "post-molState read * \n";
   logger.logMetadata(argv[16], params);
 
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "initial");
