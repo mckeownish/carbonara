@@ -78,7 +78,8 @@ int main( int argc, const char* argv[] )
         char outputname[100];
         strcpy(outputname,argv[3]);
         strcat(outputname,"_");
-        const char* str = ss.str().c_str(); 
+        std::string tempStr = ss.str();
+        const char* str = tempStr.c_str(); 
         strcat(outputname,str);
         strcat(outputname,".dat");
         molcp.writeMoleculeToFile(outputname);

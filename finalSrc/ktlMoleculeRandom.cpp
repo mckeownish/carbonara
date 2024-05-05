@@ -94,7 +94,7 @@ double ktlMolecule::getCurvatureJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     kapval = kapvallink;
-  }else if(3<sz<7){
+  }else if(3<sz && sz<7){
     kapval = kapvalbeta;
   }else{
     kapval = kapvalalpha;
@@ -108,7 +108,7 @@ double ktlMolecule::getTorsionJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     tauval = tauvallink;
-  }else if(3<sz<7){
+  }else if(3<sz && sz<7){
     tauval = tauvalbeta;
   }else{
     tauval = tauvalalpha;
@@ -147,7 +147,7 @@ double ktlMolecule::getAlbeadJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     length = alvallink;
-  }else if(3<sz<7){
+  }else if(3<sz && sz<7){
     length = alvalbeta;
   }else{
     length = alvalalpha;
