@@ -1,7 +1,7 @@
 
-# CarbonaraPy
+# Coming soon... CarbonaraPy
 
-CarbonaraPy is a Python package that interfaces with our C++ package Carbonara that provides tools for correcting structural predictions of proteins using X-ray small-angle scattering (SAXS) in solution.
+CarbonaraPy: a Python package that interfaces with our C++ package Carbonara that provides tools for correcting structural predictions of proteins using X-ray small-angle scattering (SAXS) in solution.
 
 
 ## Features
@@ -26,7 +26,7 @@ pip install carbonarapy
 Here's a simple example of how to use CarbonaraPy:
 
 ```python
-from carbonarapy as run_predict_structure
+from carbonarapy import run_predict_structure
 
 # Example function call
 run_predict_structure( ScatterFile, fileLocs, initialCoordsFile, pairedPredictions, fixedsections, noStructures,
