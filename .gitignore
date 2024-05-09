@@ -85,6 +85,7 @@ carbonarapy.egg-info/
 predictionSetupCameron2.ipynb
 carbonarapy/
 setup.py
+clearup_test.py
 test_build.py
 
 
