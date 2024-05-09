@@ -40,6 +40,7 @@ obj/
 *.tmp
 *.user
 *.suo
+*.ipynb_checkpoints
 
 # CMake
 CMakeLists.txt.user
@@ -71,12 +72,16 @@ predictionSetupCameron2.ipynb
 
 # data
 !newFitData/test_simple/fitdata/.gitkeep
+!newFitData/test_multi/fitdata/.gitkeep
 test_data/
 
 # junk draw
 cppcheck_output.txt
 BUmoleculeFitAndState.cpp
 BUmoleculeFitAndState.h
+clearup_test.py
+CarbonaraDataTools.py
+carbonarapy.egg-info/
 
 
 

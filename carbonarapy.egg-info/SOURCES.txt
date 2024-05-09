@@ -1,7 +1,0 @@
-setup.py
-carbonarapy/__init__.py
-carbonarapy/carbonara_wrapper.py
-carbonarapy.egg-info/PKG-INFO
-carbonarapy.egg-info/SOURCES.txt
-carbonarapy.egg-info/dependency_links.txt
-carbonarapy.egg-info/top_level.txt
