@@ -82,6 +82,11 @@ BUmoleculeFitAndState.h
 clearup_test.py
 CarbonaraDataTools.py
 carbonarapy.egg-info/
+predictionSetupCameron2.ipynb
+carbonarapy/
+setup.py
+test_build.py
+
 
 
 
