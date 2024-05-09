@@ -14,6 +14,7 @@ public:
   void updateMolecule(std::vector<ktlMolecule> &molNew);
   double calculateScattering(experimentalData &ed,double &kmin,double &kmax,std::vector<double> &mixtureVals);
   void writeScatteringToFile(experimentalData &ed,double &kmin,double &kmax,const char* filename);
+  void writeHyrdationShellToFile(const char* filename,int &i);
   double getOverlapPenalty(double &closestApproachDist,std::vector<double> &overlapDists);
   double applyOverlapPenalty();
   double applyDistanceConstraints();
@@ -28,8 +29,9 @@ public:
   double getDistanceConstraints();
   void alterWritheSet(ktlMolecule &molNew,int &i);
   std::pair<double,double> getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax);
+  std::pair<double,double>  getOverallFitForceConnection(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax);
   std::pair<double,double> getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,ktlMolecule &molNew,double &kmin,double &kmax,int &i);
-  double getOverallFitForceConnection(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,ktlMolecule &molNew,double &kmin,double &kmax,int &i);
+  std::pair<double,double>  getOverallFitForceConnection(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,ktlMolecule &molNew,double &kmin,double &kmax,int &i);
   double currFit;
 private:
   std::vector<std::vector<double> > molDists;
@@ -53,6 +55,8 @@ private:
   std::vector<double> percentageCombinations;
   std::vector<ktlMolecule> mol;
   double connectionPenalty;
+  std::vector<double> connectionPenaltySet;
+  std::vector<hydrationShellMinimal> hydrationShellBest;
 };
 
 #endif

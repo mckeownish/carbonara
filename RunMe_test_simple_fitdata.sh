@@ -34,7 +34,7 @@ ROOT=$(dirname "$(readlink -f "$0")")
  kmax=0.25
 
  ### argv[11] Max number of fitting steps
- maxNoFitSteps=5
+ maxNoFitSteps=25
 
  ### argv[12] prediction file - mol[i] in the fitting folder
  predictionFile=$ROOT/newFitData/test_simple/fitdata
@@ -57,7 +57,7 @@ ROOT=$(dirname "$(readlink -f "$0")")
  ### argv[18] is true if we want to apply affine rotations,false if not.
  affineTrans=False
 
-for i in {1..3}
+for i in {1..1}
 
 do
     echo "\n"

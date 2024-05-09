@@ -69,6 +69,14 @@ predictStructureQvary
 CarbonaraDataTools.py
 predictionSetupCameron2.ipynb
 
+# data
+!newFitData/test_simple/fitdata/.gitkeep
+test_data/
+
+# junk draw
+cppcheck_output.txt
+BUmoleculeFitAndState.cpp
+BUmoleculeFitAndState.h
 
 
 

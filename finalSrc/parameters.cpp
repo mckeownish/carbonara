@@ -27,6 +27,8 @@ ModelParameters loadParameters(const char* argv[]) {
     // command-line arguments for rigid body transformations
     if(strcmp(argv[18],"True") == 0){ 
         params.affineTrans=true;
+    } else {
+        params.affineTrans=false;
     }
 
     // logic for helRatList --change?

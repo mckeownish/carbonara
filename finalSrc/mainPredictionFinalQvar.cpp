@@ -1,3 +1,5 @@
+/* Carbonara Version: 0.1.9 */
+
 #include "ktlMoleculeRandom.h"
 #include "hydrationShellRandom.h"
 #include "experimentalData.h"
@@ -12,10 +14,7 @@
 
 using namespace std::chrono;
 
-// todo: 
-
-// .getOverallFit (less args)
-// test with cameron multi-mol - work? eeesh
+// note: this version showing funky behaviour with getFit()'s - not always consistent!
 
 /* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
 
@@ -41,14 +40,11 @@ using namespace std::chrono;
  --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
 int main( int argc, const char* argv[] ) {
-  // std::cout << argv[12];
-  // std::cout << argv[16];
+
   /* initialise the log file */
-  std::cout << "pre-logger * ";
   Logger logger(argv[16]);
 
   /* Set up model parameters */
-  std::cout << "pre-params read * ";
   ModelParameters params = loadParameters(argv);
 
   /* >> determine initial model: Two options no initial prediction, we must generate a structure
@@ -56,31 +52,25 @@ int main( int argc, const char* argv[] ) {
 
   /* Initialise the molecule(s) vector */
   std::vector<ktlMolecule> mol;
-  std::cout << "pre-mol read * ";
   readInStructures(argv, mol, params);
   
   /* Determine which sections are being altered */
   std::vector< std::vector<int> > vary_sec_list_list;
-  std::cout << "pre-varysec read * ";
   determineVaryingSections(argv, vary_sec_list_list);
     
   /* Read in any fixed distances constraints (contact predictions/sulfide bonds) */
-  std::cout << "pre-dist-const read * ";
   readFixedDistancesConstraints(argv, mol);
 
   /* Read in the permissible mixture list */
-  std::cout << "pre-permiss read * ";
   readPermissibleMixtures(argv, params);
   
   /* Read in the scattering and set up the scattering model */
-  std::cout << "pre-ed read * ";
   experimentalData ed(argv[1]);
 
   /* Random generator */
   RandomGenerator rng;
  
   /* initialise the state of mol vector */
-  std::cout << "pre-molState read * \n";
   moleculeFitAndState molState(mol, params);
 
   int improvementIndex=0;
@@ -89,10 +79,16 @@ int main( int argc, const char* argv[] ) {
     improvementIndex=std::atoi(argv[17]);
   }
 
-  std::cout << "pre-initial overallFit * \n";
-  std::pair<double,double> overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  
-  std::cout << "post-molState read * \n";
+  std::pair<double,double> overallFit;
+  // std::cout << " first getOverallFit \n";
+  overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // if(params.affineTrans==true){
+  //     overallFit = molState.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // } else {
+  //     overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // }
+  // std::cout << " first getOverallFit - done \n";
+
   logger.logMetadata(argv[16], params);
 
   std::string scatterNameInitial = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "initial");
@@ -114,9 +110,6 @@ int main( int argc, const char* argv[] ) {
      
    */
 
-  // This whole section is bracket hell
-  // we need break stuff up into smaller functions
-  
   // noSections vector tells us how many subsections are in each molecule
   // e.g. for a monomer/dimer mixture noSections[0]=1,noSections[1]=2.
   /* find number of sections in each molecule in mol (vector <ktlMolecule>) */
@@ -144,6 +137,24 @@ int main( int argc, const char* argv[] ) {
     molState = molStateSet[index];
     mol = molState.getMolecule();
     overallFit = molState.getFit();
+
+    /* START TEST PRINT */
+    std::cout << " * " << k << " * \n";
+    std::cout << "overallFit (updated with improved fitting): " << overallFit.first << "\n";
+
+    moleculeFitAndState TESTmolState = molStateSet[0];
+    std::pair<double,double> TESTcurrentFit = TESTmolState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+
+    std::cout << "molState from molStateSet - getFit(): " << TESTmolState.getFit().first << "\n";
+    std::cout << "molState from molStateSet - getOverallFit(): " << TESTcurrentFit.first << "\n \n";
+
+    std::vector<ktlMolecule> TESTmol = molStateSet[0].getMolecule();
+    moleculeFitAndState TESTmolState2(TESTmol, params);
+    std::pair<double,double> TESTcurrentFit2 = TESTmolState2.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+
+    std::cout << "molState from molStateSet 2 - getFit(): " << TESTmolState2.getFit().first << "\n";
+    std::cout << "molState from molStateSet 2 - getOverallFit(): " << TESTcurrentFit2.first << "\n \n";
+    /* END TEST PRINT */
 
     for(int l=0;l<mol.size();l++){
 
@@ -217,7 +228,6 @@ int main( int argc, const char* argv[] ) {
 
 	      //calculate the fitting of changed molecule
 	      std::pair<double,double> newOverallFit = newmolState.getOverallFit(ed,params.mixtureList,params.helRatList,newMol,params.kmin,params.kmaxCurr,l);
-
 	      double uProb = rng.getDistributionR();
 
 	      if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
@@ -227,17 +237,15 @@ int main( int argc, const char* argv[] ) {
           updateAndLog(improvementIndex, mol, newMol, molState, newmolState, overallFit, newOverallFit, logger, l, k, ed, params);
           logger.consoleChange("fitImprove", params);
         }
+        
 	    } 
 	  } // if doAll ..
-
 	} // end of j for loop - number of subsections (getSubsecSize)
-
       } // end of i for loop - noSections in each l
     } // end of l for loop - mol.size()
 
-    // ngl this ^^ {} situ is a bit of a mess haha
 
-    // Assign the new 'improved' molcule state to the historical tracker
+    // Assign the new 'improved' molecule state to the historical tracker
     molStateSet[index] = molState;
     molStateSet[index].updateMolecule(mol);
     sortVec(molStateSet);
@@ -257,13 +265,23 @@ int main( int argc, const char* argv[] ) {
   
   // regenrate molecule hydration layer to update the fit
   moleculeFitAndState molStateBest(molBest, params);
-  std::pair<double,double> overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+
+  std::pair<double,double> overallFitBest;
+  overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // if(params.affineTrans==true){
+  //     overallFitBest = molStateBest.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // }else{
+  //     overallFitBest= molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  // }
+  
 
   // molFitOut.writeScatteringToFile(ed,kmin,kmaxCurr,argv[13]);
   std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molStateBest, ed, params.kmin, params.kmaxCurr, "end");
+  
+  std::cout << "\n best overall mol name: " << moleculeNameEnd << "\n";
+  std::cout << " overallFitBest fit: " << overallFitBest.first << "\n";
 
   logger.logEntry(improvementIndex, k, overallFitBest.first, molStateBest.getWrithePenalty(), molStateBest.getOverlapPenalty(), 
                   molStateBest.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
 
 } // end of main
-      
