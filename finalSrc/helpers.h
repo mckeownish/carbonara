@@ -30,7 +30,7 @@ void readPermissibleMixtures(const char* argv[], ModelParameters& params);
 std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol);
 
 // construct the historical states set
-std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& molState, ModelParameters& params);
+std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState molState, ModelParameters& params);
 
 
 // Increase kmax range logic - changes made in place with reference

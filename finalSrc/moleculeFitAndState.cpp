@@ -276,82 +276,66 @@ double  moleculeFitAndState::getDistanceConstraints(){
 
 
 
-std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax){
-  
-  std::cout << "Running getOverallFit - non i overload \n";
-  
-  scatterAndHydrationConstraint =10000.0;
-  int bestHelRatList=0;
-  for(int m=0;m<mixtureList.size();m++){
-    for(int j=0;j<helRatList.size();j++){
-      for(int i=0;i<mol.size();i++){
-	//generate the hydration shell
-	hydrationShellMinimal hydrationShellTmp(mol[i],Rin,Rout,RShell,ntrivs,helRatList[j],solventsPerLink,closestApproachDist,rmin,rmax,lmin);
-	hydrationShellTmp.generateHydrationLayer();
-	//calclate the distances associated with the shell
-	calcuateHydrationDistances(hydrationShellTmp,i);
-	// get the scattering value
-	//std::cout<<m<<" "<<j<<" "<<i<<" "<<mixtureList.size()<<" "<<helRatList.size()<<" "<<mol.size()<<"\n";
+/**
+ * Calculates the overall fit of moleculeFitAndState mol object.
+ * 
+ * @param ed The experimentalData object.
+ * @param mixtureList The list of mixture values.
+ * @param helRatList The list of hydration ratio values.
+ * @param kmin The minimum value of k.
+ * @param kmax The maximum value of k.
+ * @return A pair of doubles representing the overall fit and the scatter + hydration constraint.
+ */
+std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed, std::vector<std::vector<double> > &mixtureList, std::vector<double> &helRatList, double &kmin, double &kmax) {
+  scatterAndHydrationConstraint = 10000.0;
+  int bestHelRatList = 0;
+
+  // Loop over mixtureList
+  for (int m = 0; m < mixtureList.size(); m++) {
+    // Loop over helRatList
+    for (int j = 0; j < helRatList.size(); j++) {
+      // Loop over mol
+      for (int i = 0; i < mol.size(); i++) {
+        // Generate the hydration shell
+        hydrationShellMinimal hydrationShellTmp(mol[i], Rin, Rout, RShell, ntrivs, helRatList[j], solventsPerLink, closestApproachDist, rmin, rmax, lmin);
+        hydrationShellTmp.generateHydrationLayer();
+        // Calculate the distances associated with the shell
+        calcuateHydrationDistances(hydrationShellTmp, i);
+        // Get the scattering value
+        double tempScat = 11000.0;
+        double maxDistMolecule = *std::max_element(maxDistMol.begin(), maxDistMol.end());
+        if (maxDist < 2.0 * maxDistMolecule) {
+          tempScat = calculateScattering(ed, kmin, kmax, mixtureList[m]);
+        }
+        // Check if it is the best
+        if (tempScat < scatterAndHydrationConstraint) {
+          scatterAndHydrationConstraint = tempScat;
+          percentageCombinations = mixtureList[m];
+          bestHelRatList = j;
+        }
       }
-      double tempScat=11000.0;
-      double maxDistMolecule = *std::max_element(maxDistMol.begin(),maxDistMol.end());
-      //std::cout<<maxDist<<" "<<maxDistMolecule<<"\n";
-      if(maxDist<2.0*maxDistMolecule){
-	tempScat =  calculateScattering(ed,kmin,kmax,mixtureList[m]);
-      }
-      //check what is best
-      /*for(int mv=0;mv<mixtureList[m].size();mv++){
-	std::cout<<" "<<mixtureList[m][mv];
-      }
-      std::cout<<" "<<tempScat<<"\n";*/
-      if(tempScat< scatterAndHydrationConstraint){
-	scatterAndHydrationConstraint= tempScat;
-	percentageCombinations = mixtureList[m];
-	bestHelRatList=j;
-      }
-    }  
+    }
   }
-  // regenerate the best one
 
-  // std::cout << "Pre hydr-shell's \n";
-
-  for(int i=0;i<mol.size();i++){
-    //generate the hydration shell
-    hydrationShellMinimal hydrationShellTmp2(mol[i],Rin,Rout,RShell,ntrivs,helRatList[bestHelRatList],solventsPerLink,closestApproachDist,rmin,rmax,lmin);
+  // Regenerate the best one
+  for (int i = 0; i < mol.size(); i++) {
+    // Generate the hydration shell
+    hydrationShellMinimal hydrationShellTmp2(mol[i], Rin, Rout, RShell, ntrivs, helRatList[bestHelRatList], solventsPerLink, closestApproachDist, rmin, rmax, lmin);
     hydrationShellTmp2.generateHydrationLayer();
-    //calclate the distances associated with the shell
-    calcuateHydrationDistances(hydrationShellTmp2,i);
-    hydrationShellBest[i] =hydrationShellTmp2;
+    // Calculate the distances associated with the shell
+    calcuateHydrationDistances(hydrationShellTmp2, i);
+    hydrationShellBest[i] = hydrationShellTmp2;
   }
-  // std::cout << "Post hydr-shell's \n";
 
-  //best initial mixture
-  // std::cout<<"best initial mixture"<<"\n";
-  for(int mv=0;mv<percentageCombinations.size();mv++){
-    // std::cout<<" "<<percentageCombinations[mv];
-  }
-  // std::cout<<"\n";
-  /***************************************************************
-
-   apply penalties which are "un protein like". Currently we are using
-
-     i) a very strict overlap penalty which exponetiallp penalises non local sections coming close than 4 A.
-     ii) A distance constraint measure, which is only active if the user inputs a set of distance consrtrainst like contact predictions.
-     iii) A writhe penalty to ensure the moelule doesn't become too disentangled.
-  
-  **************************************************************/
-
+  // Apply penalties
   double overlapPenalty = applyOverlapPenalty();
-  // std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
-  originalOverlapPenalty= overlapPenalty;
+  originalOverlapPenalty = overlapPenalty;
   double distanceConstraints = applyDistanceConstraints();
-  // std::cout<<"Distance Constraints "<<distanceConstraints<<"\n";
   applyWritheConstraint();
-  // std::cout<<"Writhe penalty "<<writhePenalty<<"\n";
-  // std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
-  //calculateConnectionPenalty(mol[0],0);
-  // std::cout<<"original connection Pen "<<connectionPenalty<<"\n";
-  currFit = scatterAndHydrationConstraint +overlapPenalty +distanceConstraints + writhePenalty;
+
+  // Calculate the overall fit
+  currFit = scatterAndHydrationConstraint + overlapPenalty + distanceConstraints + writhePenalty;
+
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;

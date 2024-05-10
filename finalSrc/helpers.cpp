@@ -170,7 +170,7 @@ std::vector<int> findNumberSections(std::vector<ktlMolecule>& mol) {
 
 // Add the original molState N time to the historical set
 // create HistoricalStateSet Class - help develop search algorithms
-std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState& molState, ModelParameters& params){
+std::vector<moleculeFitAndState> makeHistoricalStateSet(moleculeFitAndState molState, ModelParameters& params){
 
     std::vector<moleculeFitAndState> molStateSet;
 
