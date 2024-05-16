@@ -177,6 +177,7 @@ int main(int argc, const char* argv[]) {
         } // rotate/translate section ends
 
         // net index tells us how far we are through the whole moelcule
+        // CHRIS - does this account for more than 1 previous chain in mol structure? 
         if (chainNumber > 1) {
           netIndex = netIndex + mol[structureIndex].getSubsecSize(chainNumber - 1);
         }
