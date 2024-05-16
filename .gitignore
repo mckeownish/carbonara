@@ -80,7 +80,7 @@ cppcheck_output.txt
 BUmoleculeFitAndState.cpp
 BUmoleculeFitAndState.h
 clearup_test.py
-CarbonaraDataTools.py
+# CarbonaraDataTools.py
 carbonarapy.egg-info/
 predictionSetupCameron2.ipynb
 carbonarapy/
