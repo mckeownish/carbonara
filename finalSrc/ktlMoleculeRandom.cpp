@@ -238,12 +238,6 @@ std::pair<double,double> ktlMolecule::getMaxPossibleLength(){
 }
 
 
-
-
-
-
-
-
 void ktlMolecule::readInSequence(const char* filename,double &rmin,double &rmax,double &lmin){
   int npts;
   std::ifstream myfile;

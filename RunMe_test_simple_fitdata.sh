@@ -34,7 +34,7 @@ ROOT=$(dirname "$(readlink -f "$0")")
  kmax=0.25
 
  ### argv[11] Max number of fitting steps
- maxNoFitSteps=15
+ maxNoFitSteps=50
 
  ### argv[12] prediction file - mol[i] in the fitting folder
  predictionFile=$ROOT/newFitData/test_simple/fitdata

@@ -9,6 +9,12 @@
 #include <iostream>
 #include <sstream>
 
+/**
+ * \struct ModelParameters
+ * \brief A structure representing the parameters used by Carbonara.
+ *
+ * Some parameters are set to default values, while others are user-definable.
+ */
 struct ModelParameters {
 
     double lmin = 4.0;
@@ -38,7 +44,14 @@ struct ModelParameters {
     
 };
 
-// All model parameters
+/**
+ * \brief Implementation of the loadParameters function.
+ * 
+ * This function takes an array of command-line arguments and uses them to fill a ModelParameters object.
+ * 
+ * \param argv Carbonara command-line arguments.
+ * \return ModelParameters object.
+ */
 ModelParameters loadParameters(const char* argv[]);
 
 #endif
