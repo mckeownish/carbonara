@@ -12,6 +12,9 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   maxDistMol.resize(mol.size());
   maxDistSol.resize(mol.size());
   contactPredPen.resize(mol.size());
+  connectionPenaltySet.resize(mol.size());
+  hydrationShellBest.resize(mol.size());
+
   writhePenalty=0.0;
   
   // set the fixed fitting parameters
@@ -27,19 +30,16 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
    writheFP wfp;
    std::vector<double> chainWrithes;
    for(int j=0;j<mol[i].noChains();j++){
-     std::vector<std::vector<point> > crds =mol[i].getSubsecCoordinates(j);
-     double wr =wfp.DIDownSampleAbsSingle(crds);
+     std::vector<std::vector<point> > crds = mol[i].getSubsecCoordinates(j);
+     double wr = wfp.DIDownSampleAbsSingle(crds);
      chainWrithes.push_back(wr);
     //  std::cout<<"initial abs writhe moelcule "<<i<<" chain "<<j<<" "<<wr<<"\n";
    }
    originalWrithes.push_back(chainWrithes);
   }
-  currWrithes =originalWrithes;
+  currWrithes = originalWrithes;
   connectionPenalty=0.0;
-  connectionPenaltySet.resize(mol.size());
-
-  // this needs a better solution!
-  hydrationShellBest.resize(mol.size());
+  
 
   for(int i=0;i<mol.size();i++){
     

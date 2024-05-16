@@ -89,13 +89,12 @@ int main( int argc, const char* argv[] ) {
 
   std::pair<double,double> overallFit;
   // std::cout << " first getOverallFit \n";
-  overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  // if(params.affineTrans==true){
-  //     overallFit = molState.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  // } else {
-  //     overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  // }
-  // std::cout << " first getOverallFit - done \n";
+  // overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  if(params.affineTrans==true){
+      overallFit = molState.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  } else {
+      overallFit = molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  }
 
   logger.logMetadata(argv[16], params);
 
@@ -127,7 +126,7 @@ int main( int argc, const char* argv[] ) {
   while(k < params.noScatterFitSteps){
     
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
-    if(overallFit.second < 0.0005 || (params.improvementIndexTest > std::round(params.noScatterFitSteps / 5) && overallFit.second < 0.0007)){
+    if(overallFit.second <0.0005 || (params.improvementIndexTest>std::round(params.noScatterFitSteps/5)&& overallFit.second <0.0007)){
       increaseKmax(overallFit, molStateSet, ed, params, logger);
     }
     
@@ -140,162 +139,144 @@ int main( int argc, const char* argv[] ) {
     mol = molState.getMolecule();
     overallFit = molState.getFit();
 
-    for(int l = 0; l < mol.size(); l++){
-      int netIndex = 0;
+    for(int l=0;l<mol.size();l++){
+      int netIndex=0;
          
-      // loop over the sections of the given molecule (i.e. if its a monomer this loop is trivial, but not for a multimer
+      //loop over the sections of the given molecule (i.e. if its a monomer this loop is tivial, but not for a multimer
       // another monster looooooop
-      for(int i = 1; i <= noSections[l]; i++){
-     
-        // Selected transformation option? 
-        if(params.affineTrans == true){
+      for(int i=1;i<=noSections[l];i++){
+	   
+  // Selected transformation option? 
+	if(params.affineTrans==true){
         
-          ktlMolecule molCopyR = mol[l];
+	  ktlMolecule molCopyR = mol[l];
         
-          double angle = rng.getRotAng(); 
-          double theta = rng.getTheAng(); 
-          double phi = rng.getPhiAng();
-          point kv(std::sin(theta) * std::cos(phi), std::sin(theta) * std::sin(phi), std::cos(theta));
+	  double angle = rng.getRotAng(); double theta = rng.getTheAng(); double phi = rng.getPhiAng();
+    point kv(std::sin(theta)*std::cos(phi),std::sin(theta)*std::sin(phi),std::cos(theta));
 
-          double xtran = rng.getDistTran(); 
-          double ytran = rng.getDistTran(); 
-          double ztran = rng.getDistTran();
-          point tranVec(xtran, ytran, ztran);
+    double xtran = rng.getDistTran(); double ytran = rng.getDistTran(); double ztran = rng.getDistTran();
+	  point tranVec(xtran,ytran,ztran);
 
-          molCopyR.changeMoleculeMultiRotate(angle, kv, i, tranVec);
-          bool cacaDist = molCopyR.checkCalphas(i); 
+	  molCopyR.changeMoleculeMultiRotate(angle,kv,i,tranVec);
+	  bool cacaDist = molCopyR.checkCalphas(i); 
     
-          // Logic here repeated - function!
-          if(cacaDist == false){
-            
-            // calculate the new fit for this
-            moleculeFitAndState newMolState = molState;
-            std::pair<double, double> newOverallFit = newMolState.getOverallFit(ed, params.mixtureList, params.helRatList, molCopyR, params.kmin, params.kmaxCurr, l);
-            double uProb = rng.getDistributionR();
-              
-            if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
+    // Logic here repeated - function!
+	  if(cacaDist==false){
+	    
+	    // calculate the new fit for this
+	    moleculeFitAndState newMolState = molState;
+	    std::pair<double,double> newOverallFit = newMolState.getOverallFit(ed,params.mixtureList,params.helRatList,molCopyR,params.kmin,params.kmaxCurr,l);
+	    double uProb = rng.getDistributionR();
+          
+	    if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
 
-              improvementIndex++;
-              updateAndLog(improvementIndex, mol, molCopyR, molState, newMolState, overallFit, newOverallFit, logger, l, k, ed, params);
+	      improvementIndex++;
+        updateAndLog(improvementIndex, mol, molCopyR, molState, newMolState, overallFit, newOverallFit, logger, l, k, ed, params);
 
-              logger.consoleChange("fitImprove", params);
-            } 
-          }
-        } // rotate/translate section ends
+        logger.consoleChange("fitImprove", params);
+	    } 
+	  }
+	} // rotate/translate section ends
 
-        // net index tells us how far we are through the whole molecule
-        if(i > 1){
-          netIndex = netIndex + mol[l].getSubsecSize(i - 1);
+	// net index tells us how far we are through the whole moelcule
+	if(i>1){
+	  netIndex=netIndex+mol[l].getSubsecSize(i-1);
+	}
+	
+  // not sure - Chris - all varying sections up for grabs?
+  bool doAll = false;
+
+  // Now loop over the secondary structures of the given unit or section
+	for(int j=0;j<mol[l].getSubsecSize(i)-1;j++){
+	  //std::cout<<" mol "<<l<<" sec "<<i<<" has this many sections "<<mol[l].getSubsecSize(i)<<"\n";
+	  int totalIndex = netIndex+j;
+        
+	  // in this if statement we check which secondary sections are being changed 
+	  if((doAll==true) || (std::find(vary_sec_list_list[l].begin(),vary_sec_list_list[l].end(),totalIndex)!=vary_sec_list_list[l].end())){
+	    
+      // print statement currently in to check what we are changing is correct
+	    //std::cout<<" section "<<totalIndex<<" of unit "<<i<<" "<<" sub set number "<<totalIndex-netIndex<<" being altered "<<mol.getSubsecSize(i)<<"\n";
+	    
+	    // tl;dr - copy the molecule to change it and test if we do better
+      
+      // std::cout << " p: " << p << " ";
+      // molProbe(mol, params, ed, "recalc fit for mol before modifyMolecule: ");
+      // std::string moleculeNameEnd = write_molecules(argv[12], p, mol, "default");
+      p++;
+      // molProbe(mol, params, ed, "recalc fit for mol before modifyMolecule 2: ");
+
+
+      int indexCh = totalIndex-netIndex;
+      ktlMolecule newMol = mol[l];
+      bool cacaDist = modifyMolecule(newMol, mol[l], indexCh, i);
+
+      // Logic here repeated - function!
+	    if(cacaDist==false){
+
+	      moleculeFitAndState newmolState = molState;
+
+	      //calculate the fitting of changed molecule
+	      std::pair<double,double> newOverallFit = newmolState.getOverallFit(ed, params.mixtureList, params.helRatList, newMol, params.kmin, params.kmaxCurr, l);
+        
+        double uProb = rng.getDistributionR();
+
+	      if(checkTransition(newOverallFit.first, overallFit.first, uProb, k, params.noScatterFitSteps)){
+
+           // Success! Add to the update index
+          improvementIndex++;
+          updateAndLog(improvementIndex, mol, newMol, molState, newmolState, overallFit, newOverallFit, logger, l, k, ed, params);
+          logger.consoleChange("fitImprove", params);
+
         }
         
-        // not sure - Chris - all varying sections up for grabs?
-        bool doAll = false;
+	    } 
+	  } // if doAll ..
+	} // end of j for loop - number of subsections (getSubsecSize)
+      } // end of i for loop - noSections in each l
+    } // end of l for loop - mol.size()
 
-        // Now loop over the secondary structures of the given unit or section
-        for(int j = 0; j < mol[l].getSubsecSize(i) - 1; j++){
-          //std::cout<<" mol "<<l<<" sec "<<i<<" has this many sections "<<mol[l].getSubsecSize(i)<<"\n";
-          int totalIndex = netIndex + j;
-          
-          // in this if statement we check which secondary sections are being changed 
-          if((doAll == true) || (std::find(vary_sec_list_list[l].begin(), vary_sec_list_list[l].end(), totalIndex) != vary_sec_list_list[l].end())){
-            
-            // print statement currently in to check what we are changing is correct
-            //std::cout<<" section "<<totalIndex<<" of unit "<<i<<" "<<" sub set number "<<totalIndex-netIndex<<" being altered "<<mol.getSubsecSize(i)<<"\n";
-            
-            // tl;dr - copy the molecule to change it and test if we do better
-            std::cout << " p: " << p << " ";
-            molProbe(mol, params, ed, "recalc fit for mol before modifyMolecule: ");
-            std::string moleculeNameEnd = write_molecules(argv[12], p, mol, "default");
-            p++;
-            // molProbe(mol, params, ed, "recalc fit for mol before modifyMolecule 2: ");
 
-            int indexCh = totalIndex - netIndex;
-            ktlMolecule newMol = mol[l];
-            bool cacaDist = modifyMolecule(newMol, mol[l], indexCh, i);
-
-            // Logic here repeated - function!
-            if(cacaDist == false){
-
-              moleculeFitAndState newmolState = molState;
-
-              // calculate the fitting of changed molecule
-              std::pair<double, double> newOverallFit = newmolState.getOverallFit(ed, params.mixtureList, params.helRatList, newMol, params.kmin, params.kmaxCurr, l);
-            } // end of j for loop - number of subsections (getSubsecSize)
-          } // end of i for loop - noSections in each l
-        } // end of l for loop - mol.size()
-      } // end of i for loop - noSections[l]
-
-      // Assign the new 'improved' molecule state to the historical tracker
-      molStateSet[index] = molState;
-      molStateSet[index].updateMolecule(mol);
-      sortVec(molStateSet);
-      
-      // this doesnt give us the same result as 'best fit' in loop - more like in-sanity check
-      std::vector<ktlMolecule> sanitymol = molStateSet[0].getMolecule();
-      molProbe(sanitymol, params, ed, "recalc fit for mol after molStateSet update: ");
-
-      // Print out to terminal window
-      logger.consoleFitAttempt(k, improvementIndex, params, overallFit.first, overallFit.second);
-
-      // - is mol the issue? 
-
-      k++;
-    } // end of while loop: k < noScatterFitSteps
+    // Assign the new 'improved' molecule state to the historical tracker
+    molStateSet[index] = molState;
+    molStateSet[index].updateMolecule(mol);
+    sortVec(molStateSet);
     
-    improvementIndex++;
+    // this doesnt give us the same result as 'best fit' in loop - more like in-sanity check
+    // std::vector<ktlMolecule> sanitymol = molStateSet[0].getMolecule();
+    // molProbe(sanitymol, params, ed, "recalc fit for mol after molStateSet update: ");
 
-    // pull the 'best' fit from the historical tracked {remember sorted - 0 index best fitting}
-    std::vector<ktlMolecule> molBest = molStateSet[0].getMolecule();
+    // Print out to terminal window
+    logger.consoleFitAttempt(k, improvementIndex, params, overallFit.first, overallFit.second);
 
-    std::string moleculeNameEnd = write_molecules(argv[12], improvementIndex, mol, "end");
-    
-    // regenrate molecule hydration layer to update the fit
-    moleculeFitAndState molStateBest(molBest, params);
+    // - is mol the issue? 
 
-    std::pair<double, double> overallFitBest;
-    overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-    // if(params.affineTrans==true){
-    //     overallFitBest = molStateBest.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-    // }else{
-    //     overallFitBest= molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-    // }
-
-    // molFitOut.writeScatteringToFile(ed,kmin,kmaxCurr,argv[13]);
-    std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molStateBest, ed, params.kmin, params.kmaxCurr, "end");
-    
-    std::cout << "\n best overall mol name: " << moleculeNameEnd << "\n";
-    std::cout << " overallFitBest fit: " << overallFitBest.first << "\n";
-
-    logger.logEntry(improvementIndex, k, overallFitBest.first, molStateBest.getWrithePenalty(), molStateBest.getOverlapPenalty(), 
-                    molStateBest.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
-
-  } // end of while loop: k < params.noScatterFitSteps
- 
+    k++;
+  } // end of while loop: k < noScatterFitSteps
+  
   improvementIndex++;
 
-  // pull the 'best' fit from the historical tracked {remember sorted - 0 index best fitting}
-  std::vector<ktlMolecule> molBest = molStateSet[0].getMolecule();
-
   std::string moleculeNameEnd = write_molecules(argv[12], improvementIndex, mol, "end");
-  
-  // regenrate molecule hydration layer to update the fit
-  moleculeFitAndState molStateBest(molBest, params);
+  std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molState, ed, params.kmin, params.kmaxCurr, "end");
 
-  std::pair<double,double> overallFitBest;
-  overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+
+  // pull the 'best' fit from the historical tracked {remember sorted - 0 index best fitting}
+  // std::vector<ktlMolecule> molBest = molStateSet[0].getMolecule();
+  // regenrate molecule hydration layer to update the fit
+  // moleculeFitAndState molStateBest(molBest, params);
+  // std::pair<double,double> overallFitBest;
+  // overallFitBest = molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
+  
   // if(params.affineTrans==true){
   //     overallFitBest = molStateBest.getOverallFitForceConnection(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   // }else{
   //     overallFitBest= molStateBest.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
   // }
 
-  // molFitOut.writeScatteringToFile(ed,kmin,kmaxCurr,argv[13]);
-  std::string scatterNameEnd = write_scatter(argv[12], improvementIndex, molStateBest, ed, params.kmin, params.kmaxCurr, "end");
   
   std::cout << "\n best overall mol name: " << moleculeNameEnd << "\n";
-  std::cout << " overallFitBest fit: " << overallFitBest.first << "\n";
+  std::cout << " overallFitBest fit: " << overallFit.first << "\n";
 
-  logger.logEntry(improvementIndex, k, overallFitBest.first, molStateBest.getWrithePenalty(), molStateBest.getOverlapPenalty(), 
-                  molStateBest.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
+  logger.logEntry(improvementIndex, k, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), 
+                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
 
 } // end of main
