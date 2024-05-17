@@ -2,8 +2,10 @@
 echo "================================================================================"
 echo "Building carbonara..."
 
+
 if ls finalSrc/.o 1> /dev/null 2>&1; then
 rm finalSrc/.o
+
 fi
 
 g++ -c -O3 -std=gnu++14 -o finalSrc/point.o  finalSrc/point.cpp
