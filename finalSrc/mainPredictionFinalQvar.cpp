@@ -1,4 +1,4 @@
-/* Carbonara Version: 0.1.9 */
+/* Carbonara Version: 0.2.0 */
 
 #include "ktlMoleculeRandom.h"
 #include "hydrationShellRandom.h"
@@ -179,13 +179,11 @@ int main(int argc, const char* argv[]) {
           }
         } // rotate/translate section ends
 
-        // net index tells us how far we are through the whole moelcule
-        // CHRIS - does this account for more than 1 previous chain in mol structure? 
+        // net index tells us how far we are through the whole molecule
         if (chainNumber > 1) {
           netIndex = netIndex + moleculeStructures[structureIndex].getSubsecSize(chainNumber - 1);
         }
 
-        // not sure - Chris - all varying sections up for grabs?
         bool doAll = false;
 
         // Now loop over the secondary structures of the given unit or section
