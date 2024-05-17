@@ -28,6 +28,16 @@ public:
   double DIDownSampleAbsSingleSKMT(ktlMolecule&molin);
   void  DIDownSampleWrite(std::vector<std::vector<point> >& pointListIn,const char* filename);
   void  DIDownSampleAbsWrite(std::vector<std::vector<point> >& pointListIn,const char* filename);
+  std::pair<double,double> sumWr(int& iv,int& jv,std::vector<std::vector<double> >& wijVals);
+  std::pair<std::vector<std::vector<point> >,std::vector<std::vector<point> > > getWritheFingerprints(std::vector<point>& pointList);
+  double compare(std::vector<point> & sec1,std::vector<point> & sec2,int& maxSz);
+  bool checkOverlap(std::pair<std::pair<int,int>,std::pair<int,int> >& p1,std::pair<std::pair<int,int>,std::pair<int,int> >& p2);
+  bool checkOverlap(std::pair<int,int>& p1,std::pair<int,int>& p2);
+  std::pair<bool,double>  checkOverlapLargest(std::pair<int,int>& p1,std::pair<int,int>& p2);
+  std::vector<std::pair<std::pair<int,int>,std::pair<int,int> > > compareFingerPrints(std::vector<std::vector<point> >& fp1In,int& len1,std::vector<std::vector<point> >& fp2In,int& len2,double& cutOff);
+  std::vector<std::pair<std::pair<int,int>,std::pair<int,int> > > finalSort(std::vector<std::vector<std::pair<std::pair<int,int>,std::pair<int,int> > > > & prSet);
+  std::pair<int,std::vector<std::pair<std::pair<int,int>,std::pair<int,int> > > > findBiggestOverlap(std::vector<std::vector<std::pair<std::pair<int,int>,std::pair<int,int> > > >& separatedCombo,std::vector<int>& perm);
+  std::vector<std::vector<int> > getAllSubsets(std::vector<int>& set);
 private:
   double den,lambda;
   double writhepl;
