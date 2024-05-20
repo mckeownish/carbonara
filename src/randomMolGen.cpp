@@ -1,6 +1,5 @@
 #include "randomMolGen.h"
 
-
 randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
   rmin =rminIn;rmax = rmaxIn;
   std::ifstream myfile;
@@ -18,15 +17,15 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
-	    ss>>val;  
+      ss>>val;  
       x=val;
       ss>>val;
       y=val;
       ss>>val;
       den=val;
       subVecMixedYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         mixedYfromXInterpolants.push_back(subVecMixedYFX);
       };
@@ -48,8 +47,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecNegBetaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+       if(n==nGridSize-1){
+        n=-1;
         xindex++;
         negBetaYfromXInterpolants.push_back(subVecNegBetaYFX);
       };
@@ -71,8 +70,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecPosBetaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+       if(n==nGridSize-1){
+        n=-1;
         xindex++;
         posBetaYfromXInterpolants.push_back(subVecPosBetaYFX);
       };
@@ -94,8 +93,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecAlphaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         alphaYfromXInterpolants.push_back(subVecAlphaYFX);
       };
@@ -110,15 +109,15 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
-      ss>>val;  
+	    ss>>val;  
       x=val;
       ss>>val;
       y=val;
       ss>>val;
       den=val;
       subVecAlphaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         alphaStrandYfromXInterpolants.push_back(subVecAlphaStrandYFX);
       };
@@ -133,15 +132,15 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
-      ss>>val;  
+	    ss>>val;  
       x=val;
       ss>>val;
       y=val;
       ss>>val;
       den=val;
       subVecPosBetaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+	n=-1;
         xindex++;
         posBetaStrandYfromXInterpolants.push_back(subVecPosBetaStrandYFX);
       };
@@ -163,8 +162,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecNegBetaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         negBetaStrandYfromXInterpolants.push_back(subVecNegBetaStrandYFX);
       };
@@ -187,8 +186,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecMixedStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         mixedStrandYfromXInterpolants.push_back(subVecMixedStrandYFX);
       };
@@ -210,8 +209,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJHTOLYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         helixToLinkerYfromXInterpolants.push_back(subVecJHTOLYFX);
       };
@@ -233,8 +232,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJHTOLStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         helixToStrandYfromXInterpolants.push_back(subVecJHTOLStrandYFX);
       };
@@ -256,8 +255,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJLTOHYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         linkerToHelixYfromXInterpolants.push_back(subVecJLTOHYFX);
       };
@@ -279,8 +278,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJSTOHYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         strandToHelixYfromXInterpolants.push_back(subVecJSTOHYFX);
       };
@@ -289,7 +288,7 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
      strandToHelixYfromXInterpolants.push_back(subVecJSTOHYFX);
   }
   myfile.close();
-  myfile.open("probabilityInterpolation/joinStrandToLinkerYfromXCumDist.dat");
+   myfile.open("probabilityInterpolation/joinStrandToLinkerYfromXCumDist.dat");
   std::vector<double> subVecJSTOLYFX(nGridSize,0.0);
   if (myfile.is_open()){ 
     while(!myfile.eof()){
@@ -302,8 +301,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJSTOLYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         strandToLinkerYfromXInterpolants.push_back(subVecJSTOLYFX);
       };
@@ -325,8 +324,8 @@ randomMol::randomMol(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJLTOSYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         linkerToStrandYfromXInterpolants.push_back(subVecJLTOSYFX);
       };
@@ -567,8 +566,6 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
   int n=0;
   nGridSize = 100;
   std::vector<double> subVecMixedYFX(nGridSize,0.0);
-  // std::vector<double> subVecMixedYFX(nGridSize+1,0.0);
-  
   /*point tan1(10000.0,10000.0,10000.0);point norm1(10000.0,10000.0,10000.0);
   point norm2(10000.0,10000.0,10000.0);
   dummyFrame.push_back(tan1);dummyFrame.push_back(norm1);dummyFrame.push_back(norm2);*/
@@ -583,8 +580,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecMixedYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         mixedYfromXInterpolants.push_back(subVecMixedYFX);
       };
@@ -606,8 +603,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecNegBetaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+       if(n==nGridSize-1){
+        n=-1;
         xindex++;
         negBetaYfromXInterpolants.push_back(subVecNegBetaYFX);
       };
@@ -629,8 +626,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecPosBetaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+       if(n==nGridSize-1){
+        n=-1;
         xindex++;
         posBetaYfromXInterpolants.push_back(subVecPosBetaYFX);
       };
@@ -652,8 +649,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecAlphaYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         alphaYfromXInterpolants.push_back(subVecAlphaYFX);
       };
@@ -675,8 +672,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecAlphaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         alphaStrandYfromXInterpolants.push_back(subVecAlphaStrandYFX);
       };
@@ -698,8 +695,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecPosBetaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+	n=-1;
         xindex++;
         posBetaStrandYfromXInterpolants.push_back(subVecPosBetaStrandYFX);
       };
@@ -721,8 +718,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecNegBetaStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         negBetaStrandYfromXInterpolants.push_back(subVecNegBetaStrandYFX);
       };
@@ -745,8 +742,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecMixedStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         mixedStrandYfromXInterpolants.push_back(subVecMixedStrandYFX);
       };
@@ -768,8 +765,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJHTOLYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         helixToLinkerYfromXInterpolants.push_back(subVecJHTOLYFX);
       };
@@ -791,8 +788,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJHTOLStrandYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         helixToStrandYfromXInterpolants.push_back(subVecJHTOLStrandYFX);
       };
@@ -814,8 +811,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJLTOHYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         linkerToHelixYfromXInterpolants.push_back(subVecJLTOHYFX);
       };
@@ -837,8 +834,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJSTOHYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         strandToHelixYfromXInterpolants.push_back(subVecJSTOHYFX);
       };
@@ -860,8 +857,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJSTOLYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         strandToLinkerYfromXInterpolants.push_back(subVecJSTOLYFX);
       };
@@ -883,8 +880,8 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
       ss>>val;
       den=val;
       subVecJLTOSYFX[n]=val;
-      if(n==nGridSize){
-        n=0;
+      if(n==nGridSize-1){
+        n=-1;
         xindex++;
         linkerToStrandYfromXInterpolants.push_back(subVecJLTOSYFX);
       };
@@ -898,7 +895,7 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
-	    ss>>val;  
+      ss>>val;  
       x=val;
       ss>>val;
       den=val;
@@ -1114,6 +1111,7 @@ void randomMol::setParams(double &rminIn,double &rmaxIn,double &lminIn){
   alphaKap = 0.3812;alphaTau=0.1465;alphaAl=4.24153;alphaCl=3.8003802317894965;
   betaKap = 0.523;betaTau=0.5458;betaAl=4.58415;betaCl=3.770814833345433;
 }
+
 
 
 std::pair<double,double> randomMol::kapTau(point &pt1,point &pt2,point &pt3,point &pt4){
