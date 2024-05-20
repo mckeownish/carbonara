@@ -94,7 +94,7 @@ double ktlMolecule::getCurvatureJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     kapval = kapvallink;
-  }else if(3<sz && sz<7){
+  }else if(3 < sz && sz < 7){
     kapval = kapvalbeta;
   }else{
     kapval = kapvalalpha;
@@ -108,7 +108,7 @@ double ktlMolecule::getTorsionJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     tauval = tauvallink;
-  }else if(3<sz && sz<7){
+  }else if(3 < sz && sz < 7){
     tauval = tauvalbeta;
   }else{
     tauval = tauvalalpha;
@@ -147,7 +147,7 @@ double ktlMolecule::getAlbeadJoined(int index){
   int sz =coords[index].size();
   if(sz<=2){
     length = alvallink;
-  }else if(3<sz && sz<7){
+  }else if(3 < sz && sz < 7){
     length = alvalbeta;
   }else{
     length = alvalalpha;
@@ -236,6 +236,12 @@ std::pair<double,double> ktlMolecule::getMaxPossibleLength(){
   mxpr.second = maxL;
   return mxpr;
 }
+
+
+
+
+
+
 
 
 void ktlMolecule::readInSequence(const char* filename,double &rmin,double &rmax,double &lmin){
@@ -638,8 +644,15 @@ std::vector<double> ktlMolecule::checkOverlapWithRad(double &wRad,int &sec){
 std::vector<double> ktlMolecule::checkOverlapWithRad(double &wRad){
   std::vector<double> overlappedSecs;
   distSets.clear();
-  std::vector<std::vector<double> > minimumintraMolecularDistances(chainList.size(),std::vector<double>(chainList.size(),10000.0));
+  minimumintraMolecularDistances.clear();
+  minimumintraMolecularDistances.resize(chainList.size(),std::vector<double>(chainList.size()));
+  for(int i=0;i<minimumintraMolecularDistances.size();i++){
+    for(int j=0;j<minimumintraMolecularDistances.size();j++){
+      minimumintraMolecularDistances[i][j]=10000.0;
+    }
+  }
   minimumintraMolecularDistanceMean  =0;
+  minimumintraMoleculaeDistancePerChain.clear();
   int chainIndex1=0;
   int chainIndex2=0;
   for(int i=0;i<coords.size();i++){
@@ -686,11 +699,16 @@ std::vector<double> ktlMolecule::checkOverlapWithRad(double &wRad){
   }
   // add last minimum diatnce
   for(int i=0;i<minimumintraMolecularDistances.size();i++){
+    /*for(int k=0;k<minimumintraMolecularDistances[i].size();k++){
+      std::cout<<" check "<<minimumintraMolecularDistances[i][k]<<"\n";
+      }*/
     auto ptrMinElement = std::min_element(minimumintraMolecularDistances[i].begin(),minimumintraMolecularDistances[i].end());
     auto min = *ptrMinElement;
     if(min >  minimumintraMolecularDistanceMean && min<9999.9){
       minimumintraMolecularDistanceMean = min;
     }
+    //std::cout<<"min dist for chain "<<i<<" is "<<min<<"\n";
+    minimumintraMoleculaeDistancePerChain.push_back(min);
   }
   return overlappedSecs;
 }
@@ -699,6 +717,13 @@ double ktlMolecule::getMininumIntraMoelcularDistance(){
   return minimumintraMolecularDistanceMean;
 }
 
+std::vector<double> ktlMolecule::getMinimumintraMoleculaeDistancePerChain(){
+  return minimumintraMoleculaeDistancePerChain;
+}
+
+std::vector<std::vector<double> >  ktlMolecule::getMinimumintraMolecularDistances(){
+  return minimumintraMolecularDistances;
+}
 
 std::vector<double> ktlMolecule::getDistSet(){
   return distSets;
@@ -951,13 +976,13 @@ void ktlMolecule::changeMoleculeMultiRotate(double &angle,point &k,int secIn,poi
   int sec = secIn-1;
   std::vector<std::vector<point> >::const_iterator firstc =coords.begin()+chainList[sec].first;
   //rotate from here until end of molecule
-  std::vector<std::vector<point> >::const_iterator secondc =coords.begin()+chainList[chainList.size()-1].second+1;
+  std::vector<std::vector<point> >::const_iterator secondc =coords.begin()+chainList[sec].second+1;
   std::vector<std::vector<point> > subcoords(firstc,secondc);
   bool suc=true;
   point com = getCentreOfMass(subcoords);
   rotateSection(subcoords,com,k,angle,transVec);
   // now replace the new sections into the main chain
-  int di = chainList[chainList.size()-1].second+1-chainList[sec].first;
+  int di = chainList[sec].second+1-chainList[sec].first;
   std::copy_n(subcoords.begin(),di,&coords[chainList[sec].first]);
 }
 
@@ -1158,14 +1183,16 @@ double ktlMolecule::getLennardJonesContact(){
     point cd1 = coords[pr1.first][pr1.second];
     point cd2 = coords[pr2.first][pr2.second];
     double prWiseDist = cd1.eDist(cd2);
-    //std::cout<<pr1.first<<" "<<pr1.second<<" "<<pr2.first<<" "<<pr2.second<<"\n";
-    //cd1.printPoint();
-    //cd2.printPoint();
+    std::cout<<"pair "<<i<<"\n";
+    std::cout<<pr1.first<<" "<<pr1.second<<" "<<pr2.first<<" "<<pr2.second<<"\n";
+    cd1.printPoint();
+    cd2.printPoint();
     //std::cout<<"size1 "<<coords[pr1.first].size()<<"\n";
     //std::cout<<"size2 "<<coords[pr2.first].size()<<"\n";
-    //std::cout<<"d comp "<<prWiseDist<<" "<<std::get<2>(tp)<<"\n";
+    std::cout<<"d comp "<<prWiseDist<<" "<<std::get<2>(tp).first<<"\n";
     double distFrac=(prWiseDist-std::get<2>(tp).first)/(std::get<2>(tp).first);
     double distFracWeighted = distFrac/(std::get<2>(tp).second);
+    std::cout<<"\n";
     ljval = ljval + 0.0001*distFracWeighted*distFracWeighted*distFracWeighted*distFracWeighted;
     //cd1.printPoint();
     //cd2.printPoint();

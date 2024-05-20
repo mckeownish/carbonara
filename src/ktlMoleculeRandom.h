@@ -64,6 +64,8 @@ public:
   std::vector<double> checkOverlapWithRad(double &wRad,int &sec);
   std::vector<double> checkOverlapWithRad(double &wRad);
   double getMininumIntraMoelcularDistance();
+  std::vector<double> getMinimumintraMoleculaeDistancePerChain();
+  std::vector<std::vector<double> > getMinimumintraMolecularDistances();
   std::vector<double> getDistSet();
   double compareDistances(std::vector<std::vector<point> > &coords2);
   bool checkCalphas(std::vector<std::vector<point> > &coordsIn);
@@ -88,6 +90,8 @@ public:
   double getLennardJonesContact();
   void loadFixedSections(const char* fixedsecloc);
 private:
+  std::vector<double> minimumintraMoleculaeDistancePerChain;
+  std::vector<std::vector<double> > minimumintraMolecularDistances;
   double minimumintraMolecularDistanceMean;
   std::vector<int> noPts;
   std::vector<std::vector<point> > coords;

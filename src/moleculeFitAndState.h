@@ -21,6 +21,8 @@ public:
   double applyDistanceConstraints(ktlMolecule &molNew,int &i);
   void calculateMoleculeDistances(ktlMolecule &molNew,int &i);
   void calcuateHydrationDistances(hydrationShellMinimal &hs,int &i);
+  double calculateUserSpecifiedConnectionPenalty(ktlMolecule &molNew,std::vector<int> &chainSet1,std::vector<int> &chainSet2);
+  double calculateUserSpecifiedConnectionPenalty(int chInd,std::vector<int> &chainSet1,std::vector<int> &chainSet2);
   void applyWritheConstraint();
   void calculateConnectionPenalty(ktlMolecule &molNew, int &chInd);
   std::pair<double,double>  getFit();

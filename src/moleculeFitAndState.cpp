@@ -12,10 +12,9 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   maxDistMol.resize(mol.size());
   maxDistSol.resize(mol.size());
   contactPredPen.resize(mol.size());
-  connectionPenaltySet.resize(mol.size());
-  hydrationShellBest.resize(mol.size());
-
   writhePenalty=0.0;
+  hydrationShellBest.resize(mol.size());
+  connectionPenaltySet.resize(mol.size());
   
   // set the fixed fitting parameters
   Rin = params.Rin;
@@ -26,64 +25,48 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   rmin = params.rmin; rmax = params.rmax; solventsPerLink = params.solventsPerLink;
   lmin = params.lmin;
  
+ 
   for(int i=0;i<mol.size();i++){
    writheFP wfp;
    std::vector<double> chainWrithes;
    for(int j=0;j<mol[i].noChains();j++){
-     std::vector<std::vector<point> > crds = mol[i].getSubsecCoordinates(j);
-     double wr = wfp.DIDownSampleAbsSingle(crds);
+     std::vector<std::vector<point> > crds =mol[i].getSubsecCoordinates(j);
+     double wr =wfp.DIDownSampleAbsSingle(crds);
      chainWrithes.push_back(wr);
-    //  std::cout<<"initial abs writhe moelcule "<<i<<" chain "<<j<<" "<<wr<<"\n";
+     //std::cout<<"initial abs writhe moelcule "<<i<<" chain "<<j<<" "<<wr<<"\n";
    }
    originalWrithes.push_back(chainWrithes);
   }
-  currWrithes = originalWrithes;
+  currWrithes =originalWrithes;
   connectionPenalty=0.0;
   
-
   for(int i=0;i<mol.size();i++){
-    
     //calculate distances
+    //std::cout<<"for molecule "<<i<<"\n";
     std::vector<double> overlapDists= mol[i].checkOverlapWithRad(closestApproachDist);
-
     molDists[i] = mol[i].getDistSet();
     //get number of amino acids
-
     molSize[i]  = mol[i].getNoAminos();
-
-
     //sort the distances from largest to smallest for binning.
     std::sort(molDists[i].begin(),molDists[i].end());
-
     maxDistMol[i] = molDists[i][molDists[i].size()-1];
-    // std::cout<<"maxDistMol[i] "<<maxDistMol[i]<<"\n";
-
     // calculate any overlap distances
     overlapDistSet.push_back(overlapDists);
-
-    // std::cout<<"getMininumIntraMoelcularDistance "<<i<<"\n";
     double meanDist = mol[i].getMininumIntraMoelcularDistance();
-    // std::cout<<"meanDist: " << meanDist << "\n";
-
-    if(meanDist<9999.9){
-      // only penalise nmers not monomers
-      double dif = meanDist - 6.0;
-      // std::cout<<"dif: " << dif << "\n";
-
-      connectionPenaltySet[i] = 0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;
-      // connectionPenaltySet[i] = 0.0;
-      // std::cout<<"connectionPenaltySet: " << connectionPenaltySet[i] << "\n";
+     std::vector<double> minIntraChainDistances = mol[i].getMinimumintraMoleculaeDistancePerChain();
+    for(int j=0;j<minIntraChainDistances.size();j++){
+      if(minIntraChainDistances[j]<9999.9 && minIntraChainDistances[j]>5.0){
+	// only penalise nmers not monomer
+	  double dif = minIntraChainDistances[j] - 5.0;
+	  connectionPenaltySet[i] = connectionPenaltySet[i] +0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;
+      }
     }
-
-    // std::cout<<"connectionPenalty... \n";
+    connectionPenaltySet[i]=connectionPenaltySet[i]/double(mol[i].noChains());
     connectionPenalty = connectionPenalty + connectionPenaltySet[i];
-    // std::cout<<"connectionPenalty: " << connectionPenalty << "\n";
-
-    // std::cout<<"end molecule "<<i<<"\n";
   }
   
   // to fill on first calc
-  originalOverlapPenalty = 0.0;
+  originalOverlapPenalty= 0.0;
 }
 
 std::vector<ktlMolecule> moleculeFitAndState::getMolecule(){
@@ -234,21 +217,65 @@ void moleculeFitAndState::applyWritheConstraint(){
 
 void moleculeFitAndState::calculateConnectionPenalty(ktlMolecule &molNew,int &chInd){
   connectionPenaltySet[chInd]=0.0;
-  double meanDist= molNew.getMininumIntraMoelcularDistance();
+  std::vector<double> minIntraChainDistances= molNew.getMinimumintraMoleculaeDistancePerChain();
     //std::cout<<meanDist<<"\n";
-  if(meanDist<9999.9){
-    // only penalise nmers not monomers
-    double dif =meanDist - 6.0;
-    if(dif >0.0){
-      connectionPenaltySet[chInd] = 0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;;
-    }else{
-      connectionPenaltySet[chInd]= 0.0;
+   for(int j=0;j<minIntraChainDistances.size();j++){
+     //std::cout<<" connie dif "<<minIntraChainDistances[j]<<"\n";
+      if(minIntraChainDistances[j]<9999.9 && minIntraChainDistances[j]>5.0){
+	// only penalise nmers not monomer
+	  double dif =minIntraChainDistances[j] - 5.0;
+	  connectionPenaltySet[chInd] = connectionPenaltySet[chInd] +0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;
+      }
+    }
+   connectionPenaltySet[chInd] = connectionPenaltySet[chInd]/double(mol[chInd].noChains());
+   connectionPenalty = 0.0;
+   for(int i=0;i<connectionPenaltySet.size();i++){
+     connectionPenalty = connectionPenalty + connectionPenaltySet[i];
+   }
+}
+
+
+
+double moleculeFitAndState::calculateUserSpecifiedConnectionPenalty(ktlMolecule &molNew,std::vector<int> &chainSet1,std::vector<int> &chainSet2){
+  std::vector<std::vector<double> > minIntraChainDistances= molNew.getMinimumintraMolecularDistances();
+  double userConnectedPenalty;
+  double minDist = 10000.0;
+  //std::cout<<"here ? "<<minIntraChainDistances.size()<<"\n";
+  for(int i=0;i<chainSet1.size();i++){
+    for(int j=0;j<chainSet2.size();j++){
+      if(minIntraChainDistances[chainSet1[i]][chainSet2[j]]<minDist){
+	minDist = minIntraChainDistances[chainSet1[i]][chainSet2[j]];
+      }
     }
   }
-  connectionPenalty = 0.0;
-  for(int i=0;i<connectionPenaltySet.size();i++){
-    connectionPenalty = connectionPenalty + connectionPenaltySet[i];
+  if(minDist<9999.0 && minDist>5.0){
+     double dif =minDist - 5.0;
+     userConnectedPenalty = userConnectedPenalty +0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;
+  }else{
+    userConnectedPenalty = 0.0;
   }
+  return userConnectedPenalty;
+}
+
+
+double moleculeFitAndState::calculateUserSpecifiedConnectionPenalty(int chInd,std::vector<int> &chainSet1,std::vector<int> &chainSet2){
+  std::vector<std::vector<double> > minIntraChainDistances= mol[chInd].getMinimumintraMolecularDistances();
+  double userConnectedPenalty;
+  double minDist = 10000.0;
+  for(int i=0;i<chainSet1.size();i++){
+    for(int j=0;j<chainSet2.size();j++){
+      if(minIntraChainDistances[chainSet1[i]][chainSet2[j]]<minDist){
+	minDist = minIntraChainDistances[chainSet1[i]][chainSet2[j]];
+      }
+    }
+  }
+  if(minDist<9999.0 && minDist>5.0){
+     double dif =minDist - 5.0;
+     userConnectedPenalty = userConnectedPenalty +0.0005*dif*dif*dif*dif*dif*dif*dif*dif*dif*dif;
+  }else{
+    userConnectedPenalty = 0.0;
+  }
+  return userConnectedPenalty;
 }
 
 
@@ -274,68 +301,73 @@ double  moleculeFitAndState::getDistanceConstraints(){
 
 
 
-
-
-/**
- * Calculates the overall fit of moleculeFitAndState mol object.
- * 
- * @param ed The experimentalData object.
- * @param mixtureList The list of mixture values.
- * @param helRatList The list of hydration ratio values.
- * @param kmin The minimum value of k.
- * @param kmax The maximum value of k.
- * @return A pair of doubles representing the overall fit and the scatter + hydration constraint.
- */
-std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed, std::vector<std::vector<double> > &mixtureList, std::vector<double> &helRatList, double &kmin, double &kmax) {
-  scatterAndHydrationConstraint = 10000.0;
-  int bestHelRatList = 0;
-
-  // Loop over mixtureList
-  for (int m = 0; m < mixtureList.size(); m++) {
-    // Loop over helRatList
-    for (int j = 0; j < helRatList.size(); j++) {
-      // Loop over mol
-      for (int i = 0; i < mol.size(); i++) {
-        // Generate the hydration shell
-        hydrationShellMinimal hydrationShellTmp(mol[i], Rin, Rout, RShell, ntrivs, helRatList[j], solventsPerLink, closestApproachDist, rmin, rmax, lmin);
-        hydrationShellTmp.generateHydrationLayer();
-        // Calculate the distances associated with the shell
-        calcuateHydrationDistances(hydrationShellTmp, i);
-        // Get the scattering value
-        double tempScat = 11000.0;
-        double maxDistMolecule = *std::max_element(maxDistMol.begin(), maxDistMol.end());
-        if (maxDist < 2.0 * maxDistMolecule) {
-          tempScat = calculateScattering(ed, kmin, kmax, mixtureList[m]);
-        }
-        // Check if it is the best
-        if (tempScat < scatterAndHydrationConstraint) {
-          scatterAndHydrationConstraint = tempScat;
-          percentageCombinations = mixtureList[m];
-          bestHelRatList = j;
-        }
+std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax){
+  scatterAndHydrationConstraint =10000.0;
+  int bestHelRatList=0;
+  for(int m=0;m<mixtureList.size();m++){
+    for(int j=0;j<helRatList.size();j++){
+      for(int i=0;i<mol.size();i++){
+	//generate the hydration shell
+	hydrationShellMinimal hydrationShellTmp(mol[i],Rin,Rout,RShell,ntrivs,helRatList[j],solventsPerLink,closestApproachDist,rmin,rmax,lmin);
+	hydrationShellTmp.generateHydrationLayer();
+	//calclate the distances associated with the shell
+	calcuateHydrationDistances(hydrationShellTmp,i);
+	// get the scattering value
+	//std::cout<<m<<" "<<j<<" "<<i<<" "<<mixtureList.size()<<" "<<helRatList.size()<<" "<<mol.size()<<"\n";
       }
-    }
+      double tempScat=11000.0;
+      double maxDistMolecule = *std::max_element(maxDistMol.begin(),maxDistMol.end());
+      //std::cout<<maxDist<<" "<<maxDistMolecule<<"\n";
+      if(maxDist<2.0*maxDistMolecule){
+	tempScat =  calculateScattering(ed,kmin,kmax,mixtureList[m]);
+      }
+      //check what is best
+      /*for(int mv=0;mv<mixtureList[m].size();mv++){
+	std::cout<<" "<<mixtureList[m][mv];
+      }
+      std::cout<<" "<<tempScat<<"\n";*/
+      if(tempScat< scatterAndHydrationConstraint){
+	scatterAndHydrationConstraint= tempScat;
+	percentageCombinations = mixtureList[m];
+	bestHelRatList=j;
+      }
+    }  
   }
-
-  // Regenerate the best one
-  for (int i = 0; i < mol.size(); i++) {
-    // Generate the hydration shell
-    hydrationShellMinimal hydrationShellTmp2(mol[i], Rin, Rout, RShell, ntrivs, helRatList[bestHelRatList], solventsPerLink, closestApproachDist, rmin, rmax, lmin);
+  // regenerate the best one
+  for(int i=0;i<mol.size();i++){
+    //generate the hydration shell
+    hydrationShellMinimal hydrationShellTmp2(mol[i],Rin,Rout,RShell,ntrivs,helRatList[bestHelRatList],solventsPerLink,closestApproachDist,rmin,rmax,lmin);
     hydrationShellTmp2.generateHydrationLayer();
-    // Calculate the distances associated with the shell
-    calcuateHydrationDistances(hydrationShellTmp2, i);
-    hydrationShellBest[i] = hydrationShellTmp2;
+    //calclate the distances associated with the shell
+    calcuateHydrationDistances(hydrationShellTmp2,i);
+    hydrationShellBest[i] =hydrationShellTmp2;
   }
+  //best initial mixture
+  //std::cout<<"best initial mixture"<<"\n";
+  /*for(int mv=0;mv<percentageCombinations.size();mv++){
+    std::cout<<" "<<percentageCombinations[mv];
+    }*/
+  std::cout<<"\n";
+  /***************************************************************
 
-  // Apply penalties
+   apply penalties which are "un protein like". Currently we are using
+
+     i) a very strict overlap penalty which exponetiallp penalises non local sections coming close than 4 A.
+     ii) A distance constraint measure, which is only active if the user inputs a set of distance consrtrainst like contact predictions.
+     iii) A writhe penalty to ensure the moelule doesn't become too disentangled.
+  
+  **************************************************************/
   double overlapPenalty = applyOverlapPenalty();
-  originalOverlapPenalty = overlapPenalty;
+  //std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
+  originalOverlapPenalty= overlapPenalty;
   double distanceConstraints = applyDistanceConstraints();
+  //std::cout<<"Distance Constraints "<<distanceConstraints<<"\n";
   applyWritheConstraint();
-
-  // Calculate the overall fit
-  currFit = scatterAndHydrationConstraint + overlapPenalty + distanceConstraints + writhePenalty;
-
+  // std::cout<<"Writhe penalty "<<writhePenalty<<"\n";
+  //std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
+  //calculateConnectionPenalty(mol[0],0);
+  // std::cout<<"original connection Pen "<<connectionPenalty<<"\n";
+  currFit = scatterAndHydrationConstraint +distanceConstraints + writhePenalty;
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
@@ -385,11 +417,11 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
     hydrationShellBest[i] =hydrationShellTmp2;
   }
   //best initial mixture
-  // std::cout<<"best initial mixture"<<"\n";
-  // for(int mv=0;mv<percentageCombinations.size();mv++){
-  //   std::cout<<" "<<percentageCombinations[mv];
-  // }
-  // std::cout<<"\n";
+  std::cout<<"best initial mixture"<<"\n";
+  for(int mv=0;mv<percentageCombinations.size();mv++){
+    std::cout<<" "<<percentageCombinations[mv];
+  }
+  std::cout<<"\n";
   /***************************************************************
 
    apply penalties which are "un protein like". Currently we are using
@@ -400,18 +432,19 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
   
   **************************************************************/
   double overlapPenalty = applyOverlapPenalty();
-  // std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
+  std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
   originalOverlapPenalty= overlapPenalty;
   double distanceConstraints = applyDistanceConstraints();
-  // std::cout<<"Distance Constraints "<<distanceConstraints<<"\n";
+  std::cout<<"Distance Constraints "<<distanceConstraints<<"\n";
   applyWritheConstraint();
-  // std::cout<<"Writhe penalty "<<writhePenalty<<"\n";
-  // std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
+  std::cout<<"Writhe penalty "<<writhePenalty<<"\n";
+  std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
   for(int i=0;i<mol.size();i++){
     calculateConnectionPenalty(mol[i],i);
   }
   // std::cout<<"original connection Pen "<<connectionPenalty<<"\n";
-  currFit = scatterAndHydrationConstraint +overlapPenalty +distanceConstraints + writhePenalty+connectionPenalty;
+  // if the user has specidfed some sub chains to be connected.
+  currFit = scatterAndHydrationConstraint  +distanceConstraints + writhePenalty+connectionPenalty;
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
@@ -516,15 +549,15 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
   hydrationShellBest[i] =hydrationShellTmp;
   // apply penalties
    double overlapPenalty = applyOverlapPenalty();
-   // std::cout<<"Overlap Penalty "<<overlapPenalty<<"\n";
-   double distanceConstraints = applyDistanceConstraints(molNew,i);
-   // std::cout<<"Distance constraints "<<distanceConstraints<<"\n";
+   //std::cout<<"Overlap Penalty "<<overlapPenalty<<"\n";
+  double distanceConstraints = applyDistanceConstraints(molNew,i);
+  //std::cout<<"Distance constraints "<<distanceConstraints<<"\n";
   alterWritheSet(molNew,i);
   applyWritheConstraint();
-  // std::cout<<" writhe penalty  "<<writhePenalty<<"\n";
+  //std::cout<<" writhe penalty  "<<writhePenalty<<"\n";
   calculateConnectionPenalty(molNew,i);
   //std::cout<<" scattering  "<<scatterAndHydrationConstraint<<"\n";
-   //std::cout<<" connection penalty  "<<connectionPenalty<<"\n";
+  //std::cout<<" connection penalty  "<<connectionPenalty<<"\n";
   currFit = scatterAndHydrationConstraint +overlapPenalty +distanceConstraints + writhePenalty+connectionPenalty;
   //std::cout<<currFit<<"\n";
   std::pair<double,double> fitStats;
