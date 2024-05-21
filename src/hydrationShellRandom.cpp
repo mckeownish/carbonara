@@ -88,86 +88,90 @@ void hydrationShellMinimal::getPointAndMidlengthMulti(int i,int &hIndex){
 }
 
 
-void hydrationShellMinimal::getPointAndMidlengthStraight(int &sec,int &part,int &hIndex,std::string soe,int &lenSec){
-  point startPt,endPt,midPoint;
-  if(soe == "start"){
-    if(sec==0){
-      midPoint = mol.getCoordinate(sec,part);
-      if(lenSec==1){
-	endPt = mol.getCoordinate(sec+1,0);
-      }else{
-	endPt = mol.getCoordinate(sec,part+1);
+void hydrationShellMinimal::getPointAndMidlengthStraight(int &sec, int &part, int &hIndex, std::string soe, int &lenSec) {
+  point startPt, endPt, midPoint;
+
+  if (soe == "start") {
+    if (sec == 0) {
+      midPoint = mol.getCoordinate(sec, part);
+      if (lenSec == 1) {
+        endPt = mol.getCoordinate(sec + 1, 0);
+      } else {
+        endPt = mol.getCoordinate(sec, part + 1);
       }
-      startPt = midPoint -(endPt-midPoint);
-    }else{
-      if(lenSec==1){
-	int noPrev =mol.getUnitNo(sec-1);
-	startPt = mol.getCoordinate(sec-1,noPrev-1);
-	midPoint = mol.getCoordinate(sec,part);
-	endPt = midPoint+(midPoint-startPt);
-      }else{
-	int noPrev =mol.getUnitNo(sec-1);
-	startPt = mol.getCoordinate(sec-1,noPrev-1);
-	midPoint = mol.getCoordinate(sec,part);
-	endPt = mol.getCoordinate(sec,part+1);
+      startPt = midPoint - (endPt - midPoint);
+    } else {
+      if (lenSec == 1) {
+        int noPrev = mol.getUnitNo(sec - 1);
+        startPt = mol.getCoordinate(sec - 1, noPrev - 1);
+        midPoint = mol.getCoordinate(sec, part);
+        endPt = midPoint + (midPoint - startPt);
+      } else {
+        int noPrev = mol.getUnitNo(sec - 1);
+        startPt = mol.getCoordinate(sec - 1, noPrev - 1);
+        midPoint = mol.getCoordinate(sec, part);
+        endPt = mol.getCoordinate(sec, part + 1);
       }
     }
-  }else if(soe == "end"){
-    if(sec==nSize-1){
-      if(lenSec==1){
-	int noPrev =mol.getUnitNo(sec-1);
-	startPt = mol.getCoordinate(sec-1,noPrev-1);
-      }else{
-	startPt = mol.getCoordinate(sec,-1);
+  } else if (soe == "end") {
+    if (sec == nSize - 1) {
+      if (lenSec == 1) {
+        int noPrev = mol.getUnitNo(sec - 1);
+        startPt = mol.getCoordinate(sec - 1, noPrev - 1);
+      } else {
+        startPt = mol.getCoordinate(sec, -1);
       }
-      midPoint = mol.getCoordinate(sec,part);
-      endPt = midPoint+(midPoint-startPt);
-    }else{
-       if(lenSec==1){
-	 startPt = midPoint -(endPt-midPoint);
-	 midPoint = mol.getCoordinate(sec,part);
-	 endPt = mol.getCoordinate(sec+1,0);
-       }else{
-	 startPt = mol.getCoordinate(sec,part-1);
-	 midPoint = mol.getCoordinate(sec,part);
-	 endPt = mol.getCoordinate(sec+1,0);
-       }
+      midPoint = mol.getCoordinate(sec, part);
+      endPt = midPoint + (midPoint - startPt);
+    } else {
+      if (lenSec == 1) {
+        startPt = midPoint - (endPt - midPoint);
+        midPoint = mol.getCoordinate(sec, part);
+        endPt = mol.getCoordinate(sec + 1, 0);
+      } else {
+        startPt = mol.getCoordinate(sec, part - 1);
+        midPoint = mol.getCoordinate(sec, part);
+        endPt = mol.getCoordinate(sec + 1, 0);
+      }
     }
-  }else{
-      startPt = mol.getCoordinate(sec,part-1);
-      midPoint = mol.getCoordinate(sec,part);
-      endPt = mol.getCoordinate(sec,part+1);
+  } else {
+    startPt = mol.getCoordinate(sec, part - 1);
+    midPoint = mol.getCoordinate(sec, part);
+    endPt = mol.getCoordinate(sec, part + 1);
   }
-  double endDist = 0.5*startPt.eDist(endPt);
-  point direc = endPt-startPt;
+
+  double endDist = 0.5 * startPt.eDist(endPt);
+  point direc = endPt - startPt;
   direc.normalise();
-  direcList[hIndex]=direc;
+  direcList[hIndex] = direc;
   frameTan[hIndex] = direc;
+
   double normt;
-  if(sec==0||sec == nSize-1){
-    point vert(0.0,0.0,1.0);
-    if(std::abs(direc.dotprod(vert))<0.9999999){
+  if (sec == 0 || sec == nSize - 1) {
+    point vert(0.0, 0.0, 1.0);
+    if (std::abs(direc.dotprod(vert)) < 0.9999999) {
       point N1 = vert.cross(direc);
       N1.normalise();
       frameNorm[hIndex] = N1;
-    }else{
-      point vert2(0.0,1.0,0.0);
+    } else {
+      point vert2(0.0, 1.0, 0.0);
       point N1 = vert2.cross(direc);
       N1.normalise();
       frameNorm[hIndex] = N1;
     }
-  }else{
-    point bmina = endPt-startPt;
-    normt = (midPoint-startPt).dotprod(bmina);
-    normt = normt/(bmina.dotprod(bmina));
-    point frnm =  startPt + (endPt-startPt)*normt-midPoint;
+  } else {
+    point bmina = endPt - startPt;
+    normt = (midPoint - startPt).dotprod(bmina);
+    normt = normt / (bmina.dotprod(bmina));
+    point frnm = startPt + (endPt - startPt) * normt - midPoint;
     frnm.normalise();
-    frameNorm[hIndex] =frnm;
+    frameNorm[hIndex] = frnm;
   }
+
   frameNorm[hIndex].normalise();
   frameBinorm[hIndex] = frameTan[hIndex].cross(frameNorm[hIndex]);
-  midPointList[hIndex]= startPt;   
-  halfLengthList[hIndex]=endDist*0.5;
+  midPointList[hIndex] = startPt;
+  halfLengthList[hIndex] = endDist * 0.5;
 }
 
 
