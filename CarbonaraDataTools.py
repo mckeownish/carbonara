@@ -318,6 +318,22 @@ def get_residue_map(direction='321'):
 
 
 
+# Geometrical check for chain breaks
+def missing_ca_check(coords, threshold_dist_Å = 10):
+
+    breaking_indices = np.where( np.linalg.norm(np.diff(coords, axis=0), axis=1) > threshold_dist_Å )[0] + 1
+
+    return breaking_indices
+
+
+# break into chains based on the breaking indices found geometrically
+def break_into_chains(coords, sequence, breaking_indices):
+
+    coords_chains = np.array_split(coords, breaking_indices)
+    sequence_chains = np.array_split(sequence, breaking_indices)
+
+    return coords_chains, sequence_chains
+
 
 # Secondary structure
 
@@ -1086,7 +1102,7 @@ def random_bond_finder(rand_file_dir, fingerprint_file, linker_indices):
     return linker_bond_dict
 
 
-def find_non_varying_linkers(initial_coords_file = 'newFitData/Fitting/coordinates1.dat', fingerprint_file = 'newFitData/Fitting/fingerPrint1.dat'):
+def find_non_varying_linkers(initial_coords_file, fingerprint_file):
 
     # initial_coords_file = 'Fitting/coordinates1.dat'
     # fingerprint_file = 'Fitting/fingerPrint1.dat'
@@ -1132,6 +1148,28 @@ def find_non_varying_linkers(initial_coords_file = 'newFitData/Fitting/coordinat
         allowed_linker = np.delete(allowed_linker, np.where(allowed_linker==0)[0].item())
 
     return allowed_linker, linker_indices
+
+
+
+def auto_select_varying_linker(coords_file, fingerprint_file):
+
+    allowed_linker, linker_indices = find_non_varying_linkers(initial_coords_file = coords_file,
+                                                                fingerprint_file = fingerprint_file)
+
+    secondary = get_secondary(fingerprint_file)
+    sections = section_finder_sub(secondary)
+    varying_linker_indices = []
+    for section_index in allowed_linker:
+        if len(sections[section_index]) > 3:
+            varying_linker_indices.append(section_index)
+
+    # dict of linker lengths - maybe we priotise longer earlier or something?
+    # can we find a way to equate overall structure impact to each linker? Have some sort of scale change approach?  
+    linker_length_dict = {}
+    for section_index in varying_linker_indices:
+        linker_length_dict[section_index] = len(sections[section_index])
+    
+    return varying_linker_indices
 
 
 # ------ Carbonara Setup Methods ---------
