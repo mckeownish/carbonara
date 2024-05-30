@@ -23,7 +23,12 @@ g++ -c -O3 -std=gnu++14 -o src/parameters.o src/parameters.cpp
 
 
 g++ -c -O3 -std=gnu++14 -o src/mainPredictionFinalQvar.o src/mainPredictionFinalQvar.cpp
+
 g++ -O3 -std=gnu++14 -o predictStructureQvary src/point.o src/polyHelix.o src/randomMolGen.o src/ktlMoleculeRandom.o src/experimentalData.o src/hydrationShellRandom.o src/skmt.o src/writheFP.o src/moleculeFitAndState.o src/mainPredictionFinalQvar.o src/Logger.o src/helpers.o src/parameters.o
+
+g++ -c -O3 -std=gnu++14 -o src/mainInitialPrediction.o src/mainInitialPrediction.cpp
+
+g++ -O3 -std=gnu++14 -o getInitialPrediction src/point.o src/polyHelix.o src/randomMolGen.o src/ktlMoleculeRandom.o src/experimentalData.o src/hydrationShellRandom.o src/skmt.o src/writheFP.o src/moleculeFitAndState.o src/mainInitialPrediction.o src/Logger.o src/helpers.o src/parameters.o
 
 g++ -c -O3 -std=gnu++14 -o src/Flexible_generator.o src/Flexible_generator.cpp
 
