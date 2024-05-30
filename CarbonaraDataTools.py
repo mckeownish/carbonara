@@ -228,7 +228,6 @@ def pull_structure_from_pdb(pdb_file):
 
     chains = M.data['chain'].unique()
     ca_cond = M.data['name']=='CA'
-    
 
     if len(chains) > 1:
 
@@ -309,7 +308,16 @@ def get_residue_map(direction='321'):
                 'T': 'THR', 'V': 'VAL', 'W': 'TRP', 'Y': 'TYR'
                 }
 
-    names_aa = {y: x for x, y in aa_names.items()}
+    names_aa = {
+    'ALA': 'A', 'CYS': 'C', 'ASP': 'D', 'GLU': 'E',
+    'PHE': 'F', 'GLY': 'G', 'HIS': 'H', 'ILE': 'I',
+    'LYS': 'K', 'LEU': 'L', 'MET': 'M', 'ASN': 'N',
+    'PRO': 'P', 'GLN': 'Q', 'ARG': 'R', 'SER': 'S',
+    'THR': 'T', 'VAL': 'V', 'TRP': 'W', 'TYR': 'Y',
+    'HIE': 'H', 'HIP': 'H', 'HID': 'H', 'HSD': 'H',
+    'GLH': 'E', 'GLUP': 'E', 'CYX': 'C', 'CYM': 'C',
+    'ASH': 'D', 'ASPP': 'D', 'LYN': 'K', 'LSN': 'K'
+    }
 
     if direction == '123':
         return aa_names
@@ -317,22 +325,6 @@ def get_residue_map(direction='321'):
         return names_aa
 
 
-
-# Geometrical check for chain breaks
-def missing_ca_check(coords, threshold_dist_Å = 10):
-
-    breaking_indices = np.where( np.linalg.norm(np.diff(coords, axis=0), axis=1) > threshold_dist_Å )[0] + 1
-
-    return breaking_indices
-
-
-# break into chains based on the breaking indices found geometrically
-def break_into_chains(coords, sequence, breaking_indices):
-
-    coords_chains = np.array_split(coords, breaking_indices)
-    sequence_chains = np.array_split(sequence, breaking_indices)
-
-    return coords_chains, sequence_chains
 
 
 # Secondary structure
@@ -578,47 +570,6 @@ def geometric_secondary_structure(coords, threshold=0.2):
 
 
 # Carbonara specific XYZ constraint setup
-
-def translate_distance_constraints(contactPredsIn,coords,splitList,working_path,fixedDistList=[]):
-    # shift the coordinates back one to fit [0,1, array labelling
-    contactPreds =contactPredsIn
-    dists= []
-    for i in range(len(contactPredsIn)):
-        contactPreds[i][0] = contactPredsIn[i][0]
-        contactPreds[i][1] = contactPredsIn[i][1]
-    contactPredNara = []
-    for i in range(len(contactPreds)):
-        contactPreds[i].sort()
-        currIndex=0;
-        ss = get_secondary(working_path+"fingerPrint1.dat")
-        sections = section_finder_sub(ss)
-        currMax=len(sections[0])
-        prevMax=0
-        while (contactPreds[i][0]>currMax and currIndex<len(sections)):
-            currIndex= currIndex+1
-            currMax=currMax+len(sections[currIndex])
-            prevMax = prevMax+len(sections[currIndex-1])
-           # second coord of pair
-        pair1 =[currIndex,contactPreds[i][0]-prevMax-1]
-        currIndex=0;
-        currMax=len(sections[0])
-        prevMax=0
-        while (contactPreds[i][1]>currMax and currIndex<len(sections)):
-            currIndex= currIndex+1
-            currMax=currMax+len(sections[currIndex])
-            prevMax = prevMax+len(sections[currIndex-1])
-        pair2 =[currIndex,contactPreds[i][1]-prevMax-1]
-        if len(fixedDistList)>0:
-            dist = fixedDistList[i]
-        else:
-            dist = np.linalg.norm(coords[contactPreds[i][1]-1]-coords[contactPreds[i][0]-1])
-        # contactPredNara.append(pair1+pair2+[dist])
-        contactPredNara.append(pair1+pair2+[dist]+[0.1])
-        dists.append(dist)
-
-        # now write to file
-    print("distances in  current structure ",dists)
-    np.savetxt(working_path+"fixedDistanceConstraints1.dat",contactPredNara,fmt="%i %i %i %i %1.10f %1.10f")
 
 
 def findFlexibleSection(aminoIndexIn,working_path):
@@ -1102,7 +1053,7 @@ def random_bond_finder(rand_file_dir, fingerprint_file, linker_indices):
     return linker_bond_dict
 
 
-def find_non_varying_linkers(initial_coords_file, fingerprint_file):
+def find_non_varying_linkers(initial_coords_file = 'newFitData/Fitting/coordinates1.dat', fingerprint_file = 'newFitData/Fitting/fingerPrint1.dat'):
 
     # initial_coords_file = 'Fitting/coordinates1.dat'
     # fingerprint_file = 'Fitting/fingerPrint1.dat'
@@ -1148,28 +1099,6 @@ def find_non_varying_linkers(initial_coords_file, fingerprint_file):
         allowed_linker = np.delete(allowed_linker, np.where(allowed_linker==0)[0].item())
 
     return allowed_linker, linker_indices
-
-
-
-def auto_select_varying_linker(coords_file, fingerprint_file):
-
-    allowed_linker, linker_indices = find_non_varying_linkers(initial_coords_file = coords_file,
-                                                                fingerprint_file = fingerprint_file)
-
-    secondary = get_secondary(fingerprint_file)
-    sections = section_finder_sub(secondary)
-    varying_linker_indices = []
-    for section_index in allowed_linker:
-        if len(sections[section_index]) > 3:
-            varying_linker_indices.append(section_index)
-
-    # dict of linker lengths - maybe we priotise longer earlier or something?
-    # can we find a way to equate overall structure impact to each linker? Have some sort of scale change approach?  
-    linker_length_dict = {}
-    for section_index in varying_linker_indices:
-        linker_length_dict[section_index] = len(sections[section_index])
-    
-    return varying_linker_indices
 
 
 # ------ Carbonara Setup Methods ---------
@@ -2352,20 +2281,23 @@ def get_sses(ss_file):
     with open(ss_file,'r') as fin:
         for line in fin:
             lines+= [line.split()]
-    ss = lines[-1][0]
-    sses = []
-    count = 1
-    i = 0
-    while i<len(ss)-1:
-        if ss[i+1] == ss[i]:
-            count += 1
-            i += 1
-        else:
-            sses.append([ss[i], count])
-            count = 1
-            i += 1
-    sses.append([ss[-1], count])
-    return sses
+    ss_tensor=[]
+    for i in range(4,4*int(lines[0][0])+1,4):
+        ss = lines[i][0]
+        sses = []
+        count = 1
+        i = 0
+        while i<len(ss)-1:
+            if ss[i+1] == ss[i]:
+                count += 1
+                i += 1
+            else:
+                sses.append([ss[i], count])
+                count = 1
+                i += 1
+        sses.append([ss[-1], count])
+        ss_tensor.append(sses)
+    return ss_tensor
 
 
 def intersect_line_triangle(q1,q2,p1,p2,p3):
@@ -2615,3 +2547,239 @@ def overlayCluster(MolPath,RunName,label):
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
     fig.update_traces(showlegend=False)
     return fig
+
+### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
+### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!   UNMIGRATED CHANGES   ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
+### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
+# Geometrical check for chain breaks
+def missing_ca_check(coords, threshold_dist_Å = 10):
+
+    breaking_indices = np.where( np.linalg.norm(np.diff(coords, axis=0), axis=1) > threshold_dist_Å )[0] + 1
+
+    return breaking_indices
+
+
+# break into chains based on the breaking indices found geometrically
+def break_into_chains(coords, sequence, breaking_indices):
+
+    coords_chains = np.array_split(coords, breaking_indices)
+    sequence_chains = np.array_split(sequence, breaking_indices)
+
+    return coords_chains, sequence_chains
+
+def getResIDs(pdb_fl):
+    M = pdb_2_biobox(pdb_fl)
+    ca_idx = (M.data['name']=='CA').values
+    resids = M.get_data(indices=ca_idx)
+    coords_chains = pull_structure_from_pdb(pdb_fl)[0]
+    resids = resids[:,5]
+    # >> check for missing residues geometrically in the chain(s)
+    for coords in coords_chains:
+        breaking_indices = missing_ca_check(coords)
+        if len(breaking_indices) > 0:
+            resids = np.array_split(resids,breaking_indices)
+        else:
+            resids = [resids]
+    return resids
+
+
+def groupResIDs(pdb_fl,fp_fl,chain=1):
+    resids = getResIDs(pdb_fl)
+    ss = get_sses(fp_fl)
+    grouped = []
+    idx=0
+    for i in ss[chain-1]:
+        grouped.append([i[0],resids[chain-1][idx:idx+i[1]][0],resids[chain-1][idx:idx+i[1]][-1]])
+        idx+=i[1]
+    return(grouped)
+
+def possibleLinkerList(pdb_fl,fp_fl,chain=1):
+    grouped = groupResIDs(pdb_fl,fp_fl,chain)
+    poss = []
+    for i in range(len(grouped)):
+        if grouped[i][0]=='-':
+            poss.append([i,'ResID: ' + str(grouped[i][1]) + '-' + str(grouped[i][2])])
+    return np.array(poss)
+
+def linkerLengthCheck(resid_str):
+    res_range = resid_str.split(' ')[-1]
+    start = int(res_range.split('-')[0])
+    end = int(res_range.split('-')[1])
+    if end-start<3:
+        return False
+    else:
+        return True
+
+def highlightVaryingSections(MolPath,PDB_fl,varyingSections,chain=1):
+    resids = getResIDs(PDB_fl)
+    ss = get_sses(MolPath+'/fingerPrint1.dat')[chain-1]
+    cols=[]
+    fp=[]
+    for i in range(len(ss)):
+        for j in range(ss[i][1]):
+            fp.append(ss[i][0])
+            if i in varyingSections:
+                cols.append('red')
+            else:
+                cols.append('black')
+    coords_chains = pull_structure_from_pdb(PDB_fl)[0]
+    for coords in coords_chains:
+        breaking_indices = missing_ca_check(coords)
+        if len(breaking_indices) > 0:
+            coords_chains = np.array_split(coords_chains,breaking_indices)
+    mol = coords_chains[chain-1]
+    hover_texts = ['ResID: '+str(resids[chain-1][i]) + ', SS: ' + list(fp)[i] for i in range(len(fp))]
+    fig = go.Figure()
+    fig.add_trace(go.Scatter3d(
+            x=mol[:,0], 
+            y=mol[:,1], 
+            z=mol[:,2],
+            text=hover_texts,
+            hoverinfo='text',
+            marker=dict(
+                size=1,
+                color=cols,
+            ),
+            line=dict(
+                color=cols,
+                width=10
+            )
+        ))
+    fig.update_layout(width=1000,height=1000)
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+    fig.update_layout(
+        showlegend=False,
+        legend=dict(x=0),
+        scene=dict(
+            xaxis_title='',
+            yaxis_title='',
+            zaxis_title='',
+            aspectratio = dict( x=1, y=1, z=1 ),
+            aspectmode = 'manual',
+            xaxis = dict(
+                gridcolor="white",
+                showbackground=False,
+                zerolinecolor="white",
+                nticks=0,
+                showticklabels=False),
+            yaxis = dict(
+                gridcolor="white",
+                showbackground=False,
+                zerolinecolor="white",
+                nticks=0,
+                showticklabels=False),
+            zaxis = dict(
+                gridcolor="white",
+                showbackground=False,
+                zerolinecolor="white",
+                nticks=0,
+                showticklabels=False),),
+    )
+    fig.show()
+
+def translate_distance_constraints(contactPredsIn,coords,working_path,fixedDistList=[]):
+    # shift the coordinates back one to fit [0,1, array labelling
+    contactPreds =contactPredsIn
+    dists= []
+    for i in range(len(contactPredsIn)):
+        contactPreds[i][0] = contactPredsIn[i][0]
+        contactPreds[i][1] = contactPredsIn[i][1]
+    contactPredNara = []
+    for i in range(len(contactPreds)):
+        contactPreds[i].sort()
+        currIndex=0;
+        ss = get_secondary(working_path+"/fingerPrint1.dat")
+        sections = section_finder_sub(ss)
+        currMax=len(sections[0])
+        prevMax=0
+        while (contactPreds[i][0]>currMax and currIndex<len(sections)):
+            currIndex= currIndex+1
+            currMax=currMax+len(sections[currIndex])
+            prevMax = prevMax+len(sections[currIndex-1])
+           # second coord of pair
+        pair1 =[currIndex,contactPreds[i][0]-prevMax-1]
+        currIndex=0;
+        currMax=len(sections[0])
+        prevMax=0
+        while (contactPreds[i][1]>currMax and currIndex<len(sections)):
+            currIndex= currIndex+1
+            currMax=currMax+len(sections[currIndex])
+            prevMax = prevMax+len(sections[currIndex-1])
+        pair2 =[currIndex,contactPreds[i][1]-prevMax-1]
+        if len(fixedDistList)>0:
+            dist = fixedDistList[i]
+        else:
+            dist = np.linalg.norm(coords[contactPreds[i][1]-1]-coords[contactPreds[i][0]-1])
+        # contactPredNara.append(pair1+pair2+[dist])
+        contactPredNara.append(pair1+pair2+[dist]+[0.1])
+        dists.append(dist)
+
+        # now write to file
+    np.savetxt(working_path+"/fixedDistanceConstraints1.dat",contactPredNara,fmt="%i %i %i %i %1.10f %1.10f")
+
+def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_times, pairedQ=False,rotation=False):
+    script_name = 'RunMeInitial_'+ mol_name + '.sh'
+    if not os.path.isdir(working_path+'/tmp'):
+        os.makedirs(working_path+'/tmp')
+    with open(script_name, 'w+') as fout:
+        fout.write('#!/bin/bash')
+        # argv[ 1] scattering data file
+        saxs_file = working_path+'/Saxs.dat'
+
+        saxs_arr = np.genfromtxt(saxs_file)
+        min_q = np.round(saxs_arr[:,0].min(),2)
+        max_q = np.round(saxs_arr[:,0].max(),2)
+
+        # argv[ 2] sequence file location
+        FP_file = working_path+"/fingerPrint1.dat"
+        # argv[ 3] restart tag (use to start from existing prediction)
+        coords_file = working_path+'/coordinates1.dat'
+        # argv[ 5] fixed sections file (again can be empty)
+        varying_file = working_path+"/varyingSectionSecondary1.dat"
+        # argv[ 6] number of structures
+        # argv[ 7] request to apply hydrophobic covering WITHIN monomers will be a list of sections on which to apply it. Will say none if not. -- Currently not used
+        # argv[ 8] request to apply hydrophobic covering BETWEEN monomers will be a list of pairs to try to hydropobically pair. Will say none if not. -- currently not used
+        # argv[ 9] kmin
+        # argv[10] kmax
+        # argv[11] Max number of fitting steps
+        # argv[12] prediction file
+        # argv[13] scattering output file
+        # argv[14] mixture list file, alist of sets of numbers indicatig the allowed set of mixture percentages of each species (e.g. dimer 20 monomer 80)
+        # argv[15] previous fit string in form fitname/mol6Substep_10_1.dat+fitname/mol6Substep_10_2.dat
+        # argv[16] log file location
+        # argv[17] last line of the previous fit log, this is only used for a restart if argv[3] = True
+        # argv[18] is true if we want to apply affine rotations,false if not.
+        mixture_file = working_path+"/mixtureFile.dat"
+
+        # $1 is the moelcule name $2 the output file $3 the restart file if sied
+        fout.write('\n ScatterFile='+saxs_file)
+        fout.write('\n fileLocs='+working_path+'/')
+        fout.write('\n initialCoordsFile=frompdb')
+        fout.write('\n noStructures=1')
+        # argv[ 4] paired distances file (can be empty)
+        if pairedQ==False:
+            fout.write('\n pairedPredictions=False')
+        else:
+            fout.write('\n pairedPredictions=True')
+        fout.write('\n fixedsections='+working_path+'/varyingSectionSecondary1.dat')
+        fout.write('\n withinMonomerHydroCover=none')
+        fout.write('\n betweenMonomerHydroCover=none')
+        fout.write('\n kmin='+str(min_q))
+        fout.write('\n kmax='+str(max_q))
+        fout.write('\n maxNoFitSteps='+str(max_fit_steps))
+        if rotation==False:
+            fout.write('\n affineTrans=False')
+        else:
+            fout.write('\n affineTrans=True')
+
+
+        fout.write('\nfor i in {1..'+str(fit_n_times)+'}')
+
+        fout.write('\n\ndo')
+        fout.write('\n\n   echo " Run number : $i "')
+        fout.write('\n\n   ./getInitialPrediction $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps '+working_path+'/tmp/mol$i '+working_path+'/tmp/scatter$i.dat '+working_path+'/mixtureFile.dat '+working_path+'/redundant '+working_path+'/tmp/fitLog$i.dat '+'null '+'$affineTrans')
+
+        fout.write('\n\ndone')
+        fout.close()
+    return script_name
+
