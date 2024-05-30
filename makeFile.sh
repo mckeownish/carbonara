@@ -31,23 +31,5 @@ g++ -O3 -std=gnu++14 -o generate_structure src/point.o src/polyHelix.o src/rando
 
 echo "\n"
 echo "Built carbonara!"
-echo "================================================================================"
-echo "Running carbonara..."
-
-echo "\n"
-sh RunMe_test_simple_fitdata.sh
-echo "\n"
-
-# echo "Ran carbonara!"
-# echo "\n"
-
-echo "================================================================================"
-#echo "\n"
-# echo "Running test script..."
-
-# python test_build.py
-
-
-# echo "Test script run!"
-# echo "\n"
+echo "==========================================================================
 
