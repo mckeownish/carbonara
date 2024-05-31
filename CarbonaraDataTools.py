@@ -1265,7 +1265,7 @@ def write_fingerprint_file(number_chains, sequence, secondary_structure, working
     # if len(seq_run) != len(ss_run):
     #    raise Exception("Uh Oh... The length of sequence and secondary structure is not equal!")
     file_name_path = working_path+"/fingerPrint1.dat"
-    f = open(file_name_path, "w")
+    f = open(file_name_path, "w+")
     f.write(str(number_chains))
     for i in range(0,number_chains):
         seq_run =''.join(list(sequence[i]))
@@ -1284,7 +1284,7 @@ def write_fingerprint_file(number_chains, sequence, secondary_structure, working
 def write_varysections_file(varying_sections, working_path, carb_index=1):
     # auto: run beta sheet breaking code; write output sections to file
     file_write_name = working_path+"/varyingSectionSecondary" + str(carb_index) + ".dat"
-    f = open(file_write_name, "w")
+    f = open(file_write_name, "w+")
 
     for i, s in enumerate(varying_sections):
         f.write(str(s))
@@ -1302,7 +1302,7 @@ def write_mixture_file(working_path):
 
     file_path_name = working_path+"/mixtureFile.dat"
     # if default:
-    f = open(file_path_name, "w")
+    f = open(file_path_name, "w+")
     f.write(str(1))
 
     return file_path_name
@@ -2783,3 +2783,62 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
         fout.close()
     return script_name
 
+def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_q, max_fit_steps, fit_n_times,pairedQ=False,rotation=False):
+    script_name = 'RunMe_'+ mol_name + '_' + run_name + '.sh'
+    if not os.path.isdir(working_path+'/'+run_name):
+        os.makedirs(working_path+'/'+run_name)
+    with open(script_name, 'w+') as fout:
+        fout.write('#!/bin/bash')
+        # argv[ 1] scattering data file
+        saxs_file = working_path+'/Saxs.dat'
+        fout.write('\n ScatterFile='+saxs_file)
+        # argv[ 2] sequence file location
+        fout.write('\n fileLocs='+working_path+'/')
+        # argv[ 3] restart tag (use to start from existing prediction)
+        fout.write('\n initialCoordsFile=frompdb')
+        # argv[ 4] paired distances file (can be empty)
+        if pairedQ==False:
+            fout.write('\n pairedPredictions=False')
+        else:
+            pairedDistFile = working_path+'/fixedDistanceConstraints1.dat'
+            fout.write('\n pairedPredictions=True')
+        # argv[ 5] fixed sections file (again can be empty)
+        varying_file = working_path+"/varyingSectionSecondary1.dat"
+        fout.write('\n fixedsections='+varying_file)
+        # argv[ 6] number of structures
+        fout.write('\n noStructures='+str(no_structures))
+        # argv[ 7] request to apply hydrophobic covering WITHIN monomers will be a list of sections on which to apply it. Will say none if not. -- Currently not used
+        fout.write('\n withinMonomerHydroCover=none')
+        # argv[ 8] request to apply hydrophobic covering BETWEEN monomers will be a list of pairs to try to hydropobically pair. Will say none if not. -- currently not used
+        fout.write('\n betweenMonomerHydroCover=none')
+        # argv[ 9] kmin
+        fout.write('\n kmin='+str(min_q))
+        # argv[10] kmax
+        fout.write('\n kmax='+str(max_q))
+        # argv[11] Max number of fitting steps
+        fout.write('\n maxNoFitSteps='+str(max_fit_steps))
+        # argv[12] prediction file
+        fout.write('\n predictionFile='+working_path+'/'+run_name)
+        # argv[13] scattering output file
+        fout.write('\n scatterOut='+working_path+'/'+run_name)
+        # argv[14] mixture list file, alist of sets of numbers indicatig the allowed set of mixture percentages of each species (e.g. dimer 20 monomer 80)
+        mixture_file = working_path+"/mixtureFile.dat"
+        fout.write('\n mixtureFile='+mixture_file)
+        # argv[15] previous fit string in form fitname/mol6Substep_10_1.dat+fitname/mol6Substep_10_2.dat
+        fout.write('\n prevFitStr='+working_path+'/redundant')
+        # argv[16] log file location
+        fout.write('\n logLoc='+working_path+'/'+run_name)
+        # argv[17] last line of the previous fit log, this is only used for a restart if argv[3] = True
+        fout.write('\n endLinePrevLog=null')
+        # argv[18] is true if we want to apply affine rotations,false if not.
+        if rotation==False:
+            fout.write('\n affineTrans=False')
+        else:
+            fout.write('\n affineTrans=True')
+        fout.write('\nfor i in {1..'+str(fit_n_times)+'}')
+        fout.write('\n\ndo')
+        fout.write('\n\n   echo " Run number : $i "')
+        fout.write('\n\n   ./predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans')
+        fout.write('\n\ndone')
+        fout.close()
+    return script_name
