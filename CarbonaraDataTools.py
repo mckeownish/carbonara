@@ -2841,3 +2841,42 @@ def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_
         fout.write('\n\ndone')
         fout.close()
     return script_name
+
+def write_mixture_ratios(n, filename):
+    with open(filename, 'w') as file:
+        increment = 0.1
+        ratios = [round(i * increment,1) for i in range(1, int(1 / increment))]  # Exclude 0.0 and 1.0
+        
+        def generate_combinations(current_combination, remaining_sum, level):
+            if level == n - 1:
+                final_ratio = round(remaining_sum, 1)
+                if 0 < final_ratio < 1:
+                    current_combination.append(final_ratio)
+                    file.write(" ".join(map(str, current_combination)) + "\n")
+                    current_combination.pop()
+                return
+            
+            for ratio in ratios:
+                if ratio < remaining_sum:
+                    current_combination.append(ratio)
+                    generate_combinations(current_combination, remaining_sum - ratio, level + 1)
+                    current_combination.pop()
+        
+        generate_combinations([], 1.0, 0)
+
+def create_mixture(preprocessed_directories_list,mixture_name,saxs_file_loc):
+    if not os.path.exists('newFitData/'+mixture_name):
+        os.mkdir('newFitData/'+mixture_name)
+        to_dir = 'newFitData/'+mixture_name
+        for i in range(len(preprocessed_directories_list)):
+            from_dir = preprocessed_directories_list[i]
+            
+            shutil.copyfile(from_dir+'/coordinates1.dat',to_dir+'/coordinates'+str(i+1)+'.dat')
+            shutil.copyfile(from_dir+'/fingerPrint1.dat',to_dir+'/fingerPrint'+str(i+1)+'.dat')
+            shutil.copyfile(from_dir+'/varyingSectionSecondary1.dat',to_dir+'/varyingSectionSecondary'+str(i+1)+'.dat')
+            if os.path.exists(from_dir+'/fixedDistanceConstraints1.dat'):
+                shutil.copyfile(from_dir+'/fixedDistanceConstraints1.dat',to_dir+'/fixedDistanceConstraints'+str(i+1)+'.dat')
+        write_mixture_ratios(len(preprocessed_directories_list),to_dir+'/mixtureFile.dat')
+        shutil.copyfile(saxs_file_loc,to_dir+'/Saxs.dat')
+    else:
+        return("A folder already exists with that name, choose another to not overwrite this!")
