@@ -67,6 +67,7 @@ test_data/
 carbonarapy/
 generate_structure
 predictStructureQvary
+getInitialPrediction
 CarbonaraDataTools.py
 predictionSetupCameron2.ipynb
 
