@@ -1912,7 +1912,6 @@ def viewBestSAXSFit(RunPath,LogFilePath):
     Plots the current best scattering fit (<= cutoff and largest qMax).
     '''
     df = getAcceptableFits(LogFile2df(LogFilePath))
-    print('Best Chi^2 Fit is',df.tail(1)['ScatterFitFirst'].values[0],'for q <=',df.tail(1)['KmaxCurr'].values[0])
     return SAXS_fit_plotter(RunPath+"Saxs.dat",df['ScatterPath'].values[-1],full_q=False)
 
 
@@ -2547,6 +2546,16 @@ def overlayCluster(MolPath,RunName,label):
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
     fig.update_traces(showlegend=False)
     return fig
+
+
+def getqChanges(LogFilePath):
+    '''
+    Gets the list of qMax that the run has attempted to fit to.
+    '''
+    acceptable_df = getAcceptableFits(LogFile2df(LogFilePath))
+    q = acceptable_df['KmaxCurr'].values
+    unique_elements = np.unique(q)
+    return unique_elements
 
 ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
 ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!   UNMIGRATED CHANGES   ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
