@@ -25,9 +25,9 @@ using namespace std::chrono;
   argv[ 5] fixed sections file (again can be empty)
   argv[ 6] number of structures
   argv[ 7] request to apply hydrophobic covering WITHIN monomers -- Currently not used
-  argv[ 8] request to apply hydrophobic covering BETWEEN monomers -- currently not used
-  argv[ 9] kmin
-  argv[10] kmax
+  argv[ 8] kmin
+  argv[ 9] kmax
+  argv[10] kstart
   argv[11] Max number of fitting steps
   argv[12] prediction file - mol[i] in the fitting folder
   argv[13] scattering output file

@@ -31,6 +31,7 @@ struct ModelParameters {
     // user definable
     double kmin = 0.0;
     double kmax = 0.0;
+    double kstart = 0.0;
     double kmaxCurr = 0.0;
     int noScatterFitSteps = 5000;
     bool affineTrans=false;
