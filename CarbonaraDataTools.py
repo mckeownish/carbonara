@@ -2717,7 +2717,7 @@ def translate_distance_constraints(contactPredsIn,coords,working_path,fixedDistL
         # now write to file
     np.savetxt(working_path+"/fixedDistanceConstraints1.dat",contactPredNara,fmt="%i %i %i %i %1.10f %1.10f")
 
-def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_times, max_q,pairedQ=False,rotation=False):
+def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_times, start_q,pairedQ=False,rotation=False):
     script_name = 'RunMeInitial_'+ mol_name + '.sh'
     if not os.path.isdir(working_path+'/tmp'):
         os.makedirs(working_path+'/tmp')
@@ -2728,7 +2728,7 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
 
         saxs_arr = np.genfromtxt(saxs_file)
         min_q = np.round(saxs_arr[:,0].min(),2)
-
+        max_q = np.round(saxs_arr[:,0].max(),2)
         # argv[ 2] sequence file location
         FP_file = working_path+"/fingerPrint1.dat"
         # argv[ 3] restart tag (use to start from existing prediction)
@@ -2737,9 +2737,9 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
         varying_file = working_path+"/varyingSectionSecondary1.dat"
         # argv[ 6] number of structures
         # argv[ 7] request to apply hydrophobic covering WITHIN monomers will be a list of sections on which to apply it. Will say none if not. -- Currently not used
-        # argv[ 8] request to apply hydrophobic covering BETWEEN monomers will be a list of pairs to try to hydropobically pair. Will say none if not. -- currently not used
-        # argv[ 9] kmin
-        # argv[10] kmax
+        # argv[ 8] kmin
+        # argv[ 9] kmax
+        # argv[10] kstart
         # argv[11] Max number of fitting steps
         # argv[12] prediction file
         # argv[13] scattering output file
@@ -2762,9 +2762,9 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
             fout.write('\n pairedPredictions=True')
         fout.write('\n fixedsections='+working_path+'/varyingSectionSecondary1.dat')
         fout.write('\n withinMonomerHydroCover=none')
-        fout.write('\n betweenMonomerHydroCover=none')
         fout.write('\n kmin='+str(min_q))
         fout.write('\n kmax='+str(max_q))
+        fout.write('\n kstart='+str(start_q))
         fout.write('\n maxNoFitSteps='+str(max_fit_steps))
         if rotation==False:
             fout.write('\n affineTrans=False')
@@ -2776,7 +2776,7 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
 
         fout.write('\n\ndo')
         fout.write('\n\n   echo " Run number : $i "')
-        fout.write('\n\n   ./getInitialPrediction $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps '+working_path+'/tmp/mol$i '+working_path+'/tmp/scatter$i.dat '+working_path+'/mixtureFile.dat '+working_path+'/redundant '+working_path+'/tmp/fitLog$i.dat '+'null '+'$affineTrans')
+        fout.write('\n\n   ./getInitialPrediction $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $kmin $kmax $kstart $maxNoFitSteps '+working_path+'/tmp/mol$i '+working_path+'/tmp/scatter$i.dat '+working_path+'/mixtureFile.dat '+working_path+'/redundant '+working_path+'/tmp/fitLog$i.dat '+'null '+'$affineTrans')
 
         fout.write('\n\ndone')
         fout.close()
