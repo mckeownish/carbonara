@@ -1269,7 +1269,7 @@ def write_fingerprint_file(number_chains, sequence, secondary_structure, working
     f.write(str(number_chains))
     for i in range(0,number_chains):
         seq_run =''.join(list(sequence[i]))
-        ss_run = ''.join(list(secondary_structure[i]))
+        ss_run =fix_short_linkers(''.join(list(secondary_structure[i])))
         if len(seq_run) != len(ss_run):
             raise Exception("Uh Oh... The length of sequence and secondary structure is not equal!")
         f.write('\n \n')
@@ -1518,7 +1518,7 @@ def SAXS_fit_plotter(SAXS_file, fit_file, full_q=True):
     fit_I = fitting[:,2]
 
     q = SAXS[:,0]
-    I = np.log(SAXS[:,1])
+    I = np.log(np.where(SAXS[:,1] <= 0, np.nan, SAXS[:,1]))
 
     min_q = fit_q.min()
     max_q = fit_q.max()
@@ -1901,7 +1901,7 @@ def LogFile2df(logFilePath):
 
 def getAcceptableFits(df,cutoff=0.005):
     '''
-    Trim Log dataframe to include scatter fits with Chi^2 <= cutoff (usually 0.005).
+    Trim Log dataframe to include scatter fits with saxsfit <= cutoff (usually 0.005).
     '''
     acceptable_df = df[df['ScatterFitFirst']<=cutoff].reset_index()
     return acceptable_df
@@ -1912,6 +1912,9 @@ def viewBestSAXSFit(RunPath,LogFilePath):
     Plots the current best scattering fit (<= cutoff and largest qMax).
     '''
     df = getAcceptableFits(LogFile2df(LogFilePath))
+    if len(df)==0:
+        df = LogFile2df(LogFilePath)
+        print("Looks like we haven't found an acceptable fit yet, here's what we have so far!")
     return SAXS_fit_plotter(RunPath+"Saxs.dat",df['ScatterPath'].values[-1],full_q=False)
 
 
@@ -1921,7 +1924,10 @@ def viewBestMolChange(RunPath,LogFilePath):
     Highlights with the largest change from the start.
     '''
     df = getAcceptableFits(LogFile2df(LogFilePath))
-    current_coords = np.genfromtxt(df.tail(1)['MoleculePath'].values[0],skip_footer=1)
+    if len(df)==0:
+        df = LogFile2df(LogFilePath)
+    current_coords = np.genfromtxt(df.tail(1)['MoleculePath'].values[0])
+    current_coords = current_coords[~np.isnan(current_coords).any(axis=1)]
     start_coords = np.genfromtxt(RunPath+'coordinates1.dat')
     aligned = rmsd.kabsch_fit(current_coords,start_coords)
     diff_coords = np.array([np.linalg.norm(start_coords[i]-aligned[i]) for i in range(len(start_coords))])
@@ -2791,7 +2797,7 @@ def write_initial_saxs_check_sh(working_path, mol_name, max_fit_steps, fit_n_tim
         fout.close()
     return script_name
 
-def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_q, max_fit_steps, fit_n_times,pairedQ=False,rotation=False):
+def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_q, start_q, max_fit_steps, fit_n_times,pairedQ=False,rotation=False):
     script_name = 'RunMe_'+ mol_name + '_' + run_name + '.sh'
     if not os.path.isdir(working_path+'/'+run_name):
         os.makedirs(working_path+'/'+run_name)
@@ -2817,12 +2823,12 @@ def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_
         fout.write('\n noStructures='+str(no_structures))
         # argv[ 7] request to apply hydrophobic covering WITHIN monomers will be a list of sections on which to apply it. Will say none if not. -- Currently not used
         fout.write('\n withinMonomerHydroCover=none')
-        # argv[ 8] request to apply hydrophobic covering BETWEEN monomers will be a list of pairs to try to hydropobically pair. Will say none if not. -- currently not used
-        fout.write('\n betweenMonomerHydroCover=none')
-        # argv[ 9] kmin
+        # argv[ 8] kmin
         fout.write('\n kmin='+str(min_q))
-        # argv[10] kmax
+        # argv[ 9] kmax
         fout.write('\n kmax='+str(max_q))
+        # argv[10] kstart
+        fout.write('\n kstart='+str(start_q))
         # argv[11] Max number of fitting steps
         fout.write('\n maxNoFitSteps='+str(max_fit_steps))
         # argv[12] prediction file
@@ -2846,7 +2852,7 @@ def write_run_sh_file(working_path,mol_name, run_name, no_structures,min_q, max_
         fout.write('\nfor i in {1..'+str(fit_n_times)+'}')
         fout.write('\n\ndo')
         fout.write('\n\n   echo " Run number : $i "')
-        fout.write('\n\n   ./predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans')
+        fout.write('\n\n   ./predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $kmin $kmax $kstart $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans')
         fout.write('\n\ndone')
         fout.close()
     return script_name
@@ -2889,3 +2895,66 @@ def create_mixture(preprocessed_directories_list,mixture_name,saxs_file_loc):
         shutil.copyfile(saxs_file_loc,to_dir+'/Saxs.dat')
     else:
         return("A folder already exists with that name, choose another to not overwrite this!")
+
+def fix_short_linkers(input_str):
+    # Convert the string to a list for easier manipulation
+    str_list = list(input_str)
+    n = len(str_list)
+    
+    # Find segments of hyphens shorter than 3 characters
+    i = 0
+    while i < n:
+        if str_list[i] == '-':
+            start = i
+            while i < n and str_list[i] == '-':
+                i += 1
+            end = i
+            
+            # Length of the hyphen segment
+            hyphen_length = end - start
+            
+            if hyphen_length < 3:
+                # Check the length of the surrounding segments
+                left_length = right_length = 0
+                left_start = left_end = start
+                right_start = right_end = end
+
+                # Find the length of the segment to the left
+                while left_start > 0 and str_list[left_start - 1] == str_list[start - 1]:
+                    left_start -= 1
+                    left_length += 1
+                
+                # Find the length of the segment to the right
+                while right_end < n and str_list[right_end] == str_list[end]:
+                    right_end += 1
+                    right_length += 1
+
+                # Determine how many hyphens are needed to reach length 3
+                hyphens_needed = 3 - hyphen_length
+                
+                # Extend hyphens to the left
+                if left_length > right_length:
+                    extend_left = min(hyphens_needed, left_length)
+                    for j in range(1, extend_left + 1):
+                        str_list[start - j] = '-'
+                    hyphens_needed -= extend_left
+                    hyphen_length += extend_left
+
+                # Extend hyphens to the right if needed
+                if hyphens_needed > 0:
+                    extend_right = min(hyphens_needed, right_length)
+                    for j in range(extend_right):
+                        str_list[end + j] = '-'
+                    hyphens_needed -= extend_right
+                    hyphen_length += extend_right
+
+                # Ensure the hyphen segment is at least 3 characters long
+                if hyphen_length < 3:
+                    additional_hyphens = 3 - hyphen_length
+                    for j in range(1, additional_hyphens + 1):
+                        str_list[end + j - 1] = '-'
+
+        i += 1
+
+    # Convert the list back to a string
+    return ''.join(str_list)

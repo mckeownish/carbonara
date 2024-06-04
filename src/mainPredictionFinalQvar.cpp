@@ -107,22 +107,20 @@ int main(int argc, const char* argv[]) {
                   molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, xyzNameInitial);
 
   logger.consoleInitial(overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), molState.getDistanceConstraints());
-
+  
   /* Main algorithm */
 
   // numberOfChainsInEachStructure vector tells us how many chains are in each structure
   // e.g. for a monomer/dimer mixture numberOfChainsInEachStructure[0]=1, numberOfChainsInEachStructure[1]=2.
   std::vector<int> numberOfChainsInEachStructure = findNumberSections(moleculeStructures);
-
+  
   /* initialise the set of historical states - currently basic, but used to save previous fit stages */
   std::vector<moleculeFitAndState> molStateSet = makeHistoricalStateSet(molState, params);
 
   // loop number
   int fitStep = 0;
-
   // This is a monster while loop - strap in chaps
   while (fitStep < params.noScatterFitSteps) {
-
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
     if (overallFit.second < 0.0005 || (params.improvementIndexTest > std::round(params.noScatterFitSteps / 5) && overallFit.second < 0.0007)) {
       increaseKmax(overallFit, molStateSet, ed, params, logger);
@@ -139,14 +137,14 @@ int main(int argc, const char* argv[]) {
 
     for (int structureIndex = 0; structureIndex < moleculeStructures.size(); structureIndex++) {
       int netIndex = 0;
-
+      
       // loop over the sections of the given molecule (i.e. if its a monomer this loop is tivial, but not for a multimer
       // another monster looooooop
       for (int chainNumber = 1; chainNumber <= numberOfChainsInEachStructure[structureIndex]; chainNumber++) {
-
+        
         // Selected transformation option?
         if (params.affineTrans == true) {
-
+          
           ktlMolecule molCopyR = moleculeStructures[structureIndex];
 
           double angle = rng.getRotAng();
@@ -181,6 +179,7 @@ int main(int argc, const char* argv[]) {
 
         // net index tells us how far we are through the whole molecule
         if (chainNumber > 1) {
+          
           netIndex = netIndex + moleculeStructures[structureIndex].getSubsecSize(chainNumber - 1);
         }
 
@@ -188,12 +187,11 @@ int main(int argc, const char* argv[]) {
 
         // Now loop over the secondary structures of the given unit or section
         for (int secondarySectionIndex = 0; secondarySectionIndex < moleculeStructures[structureIndex].getSubsecSize(chainNumber) - 1; secondarySectionIndex++) {
-
+          
           int totalIndex = netIndex + secondarySectionIndex;
 
           // in this if statement we check which secondary sections are being changed
           if ((doAll == true) || (std::find(vary_sec_list_list[structureIndex].begin(), vary_sec_list_list[structureIndex].end(), totalIndex) != vary_sec_list_list[structureIndex].end())) {
-
             int indexCh = totalIndex - netIndex;
             ktlMolecule newMol = moleculeStructures[structureIndex];
             bool cacaDist = modifyMolecule(newMol, moleculeStructures[structureIndex], indexCh, chainNumber);
