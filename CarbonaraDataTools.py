@@ -2563,9 +2563,95 @@ def getqChanges(LogFilePath):
     unique_elements = np.unique(q)
     return unique_elements
 
-### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
-### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!   UNMIGRATED CHANGES   ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
-### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!! ### !!!!!!!!!!!!!!!!!!
+def getSAXsandMolFile(LogFilePath,q):
+    '''
+    For a given qMax, finds the best fit up to that value.
+    '''
+    acceptable_df = getAcceptableFits(LogFile2df(LogFilePath))
+    saxs_fl = acceptable_df[acceptable_df['KmaxCurr']==q].tail(1)['ScatterPath'].values[0]
+    mol_name = acceptable_df[acceptable_df['KmaxCurr']==q].tail(1)['MoleculePath'].values[0]
+    return [saxs_fl, mol_name]
+
+def plotMolAndSAXS(RunPath,saxs_fl,mol_fl):
+    '''
+    Combined plot of a given mol and saxs fit.
+    '''
+    fig = make_subplots(rows=2, cols=1,row_heights=[0.7,0.3],vertical_spacing=0, specs=[[{'type': 'scene'}], [{'type': 'xy'}]])
+    ### First plot mol
+    coords = np.genfromtxt(mol_fl,skip_footer=1)
+
+    fig.add_trace(go.Scatter3d(
+        x=coords[:,0], 
+        y=coords[:,1], 
+        z=coords[:,2],
+        marker=dict(
+            size=1,
+            color='black',
+        ),
+        line=dict(
+            color='black',
+            width=10
+        )
+    ), row=1,col=1)
+    fig.update_layout(width=1000,height=1000)
+    ### Now plot SAXS
+    SAXS = np.genfromtxt(RunPath+"Saxs.dat")
+    fitting = np.genfromtxt(saxs_fl, skip_footer=1)
+    fit_q = fitting[:,0]
+    fit_I = fitting[:,2]
+
+    q = SAXS[:,0]
+    I = np.log(SAXS[:,1])
+
+    min_q = fit_q.min()
+    max_q = fit_q.max()
+
+
+
+    cond = (q >= min_q) & (q <= max_q)
+    q_range = q[cond]
+    I_range = I[cond]
+    tck = interpolate.splrep(fit_q, fit_I)
+    spli_I = interpolate.splev(q_range,tck)
+
+    residuals = spli_I - I_range
+    residuals = residuals/max(residuals)
+
+    fig.add_trace(go.Scatter(x=q_range,y=I_range, mode='markers', line=dict(color="grey"), opacity=0.7, name='Data'),row=2,col=1 )
+    fig.add_trace(go.Scatter(x=fit_q, y=fit_I, mode='markers', marker=dict( color='crimson', size=8), name='Fit'),row=2,col=1 )
+    fig.add_trace( go.Scatter(x=q_range, y=spli_I, mode='lines', line=dict(color="crimson", width=3), name='Fit'),row=2,col=1 )
+
+    fig.update_layout(
+                    template='simple_white',
+                    font_size=18)
+
+    fig.update_yaxes(title_text="Intensity I(q)", row=2, col=1)
+    fig.update_xaxes(title_text="q", row=2, col=1)
+    fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+    fig.update_traces(showlegend=False)
+    fig.update_layout(
+        showlegend=False,
+        scene=dict(
+            xaxis_title='',
+            yaxis_title='',
+            zaxis_title='',
+            aspectratio = dict( x=1, y=1, z=1 ),
+            aspectmode = 'manual',
+            xaxis = dict(
+                visible=False,
+                showbackground=False,
+                showticklabels=False,
+                ),
+            yaxis = dict(
+                visible=False,
+                showbackground=False,
+                showticklabels=False),
+            zaxis = dict(
+                visible=False,
+                showbackground=False,
+                showticklabels=False)))
+    return fig
+
 # Geometrical check for chain breaks
 def missing_ca_check(coords, threshold_dist_Å = 10):
 
@@ -2958,3 +3044,88 @@ def fix_short_linkers(input_str):
 
     # Convert the list back to a string
     return ''.join(str_list)
+
+
+def load_any_coords(mol_fl_path):
+    flat_coords = np.genfromtxt(mol_fl_path)
+    flat_coords = flat_coords[~np.isnan(flat_coords).any(axis=1)]
+    breaking_indices = missing_ca_check(flat_coords)
+    if len(breaking_indices) > 0:
+        chains = [i+1 for i in range(len(breaking_indices)+1)]
+        coords_chains = break_into_chains(flat_coords,[0],breaking_indices)[0]
+        return coords_chains
+    else:
+        return [flat_coords]
+
+def get_best_mols(log_path):
+    df = getAcceptableFits(LogFile2df(log_path))
+    if len(df)==0:
+        df = LogFile2df(log_path)
+    best_mol_path = df['MoleculePath'].tail(1).values[0]
+    molpaths = glob('_'.join(best_mol_path.split('_')[:2])+'_*_'+'_'.join(best_mol_path.split('_')[3:]))
+    return molpaths
+
+def plot_best_mols(log_path):
+    molpaths = get_best_mols(log_path)
+    no_mols = len(molpaths)
+    fig = make_subplots(rows=1,
+                        cols=no_mols,
+                        column_widths=[round(1/no_mols, 1) for i in range(no_mols)],
+                        horizontal_spacing=0,
+                        specs=[[{'type': 'scene'} for _ in range(no_mols)]])
+    for i in range(no_mols):
+        coords_tensor = load_any_coords(molpaths[i])
+        for coords in coords_tensor:
+            fig.add_trace(go.Scatter3d( x=coords[:,0], 
+                                        y=coords[:,1], 
+                                        z=coords[:,2],
+                                        marker=dict(
+                                            size=1,
+                                        ),
+                                        line=dict(
+                                            width=10
+                                        )
+                                    ), 
+                                    row=1,
+                                    col=i+1)
+    for i in range(no_mols):
+        scene_name = f'scene{i+1}'
+        fig.update_layout(**{
+            scene_name: dict(
+                xaxis_title='',
+                yaxis_title='',
+                zaxis_title='',
+                aspectratio=dict(x=1, y=1, z=1),
+                aspectmode='manual',
+                xaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False,
+                ),
+                yaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False),
+                zaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False)
+            )
+        })
+    annotations = []
+    for i in range(no_mols):
+        annotations.append(dict(
+            x=(i+0.5) / no_mols,
+            y=1.05,
+            xref="paper",
+            yref="paper",
+            text=f'Molecule {i+1}',  # Change text as needed (e.g., molecule names)
+            showarrow=False,
+            font=dict(size=24)
+        ))
+
+    fig.update_layout(
+        showlegend=False,
+        annotations=annotations
+    )
+    return fig

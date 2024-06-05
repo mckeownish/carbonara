@@ -6,7 +6,7 @@
  fixedsections=newFitData/CalmodulinMix/varyingSectionSecondary1.dat
  noStructures=2
  withinMonomerHydroCover=none
- kmin=0.01
+ kmin=0.04
  kmax=0.34
  kstart=0.15
  maxNoFitSteps=10000
