@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Files and Visualize</title>
+    <script src="https://cdn.jsdelivr.net/npm/ngl@0.10.4/dist/ngl.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+
+    <style>
+        body{
+            font-family: 'Roboto', sans-serif;
+        }
+        .protein-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .viewport-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .viewport {
+            width: 300px;
+            height: 300px;
+            margin: 20px
+        }
+        .viewer-title {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .upload-forms-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .upload-form {
+            width: 49.5%;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            justify-content: center;
+            min-height: 100px;
+        }
+        .titles{
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+        }
+        .border{
+            min-height: 1000px;
+            min-width: 1px;
+            background-color: grey;
+        }
+        .file-select{
+            min-width: 60%;
+            align-content: center;
+            padding-top: 25px;
+        }
+        .upload-button{
+            min-height: 100%;
+            background-color: whitesmoke;
+            border-radius: 5px;
+            border: 2px solid grey;
+            box-shadow: none;
+        }
+        .upload-button:hover{
+            background-color: grey;
+            color: whitesmoke;
+            transition: 0.2s;
+            cursor: pointer;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="upload-forms-container">
+        <div class="upload-form">
+            <h2 class="titles">Upload PDB File</h2>
+            <form id="uploadPDBForm" action="{{ url_for('upload_pdb') }}" method="post" enctype="multipart/form-data" class="file-upload">
+                <div class="file-select">
+                    <label for="pdbFile">PDB File:</label>
+                    <input type="file" name="pdbFile" id="pdbFile"><br><br>
+                    <label for="chainType">Chain Type:</label>
+                    <input type="radio" name="chainType" value="monomer" checked> Monomer
+                    <input type="radio" name="chainType" value="multimer"> Multimer<br><br>
+                </div>
+                <input type="submit" value="Upload PDB File" class="upload-button">
+            </form>
+            <div id="pdb-visualizations" class="protein-container"></div>
+        </div>
+        <div class="border"></div>
+        <div class="upload-form">
+            <h2 class="titles">Upload SAXS File</h2>
+            <form id="uploadSAXSForm" action="{{ url_for('upload_saxs') }}" method="post" enctype="multipart/form-data" class="file-upload">
+                <div class="file-select">
+                    <label for="saxsFile">SAXS File:</label>
+                    <input type="file" name="saxsFile" id="saxsFile"><br><br>
+                </div>
+                <input type="submit" value="Upload SAXS File" class="upload-button">
+            </form>
+            <div id="scatterPlot"></div>
+        </div>
+    </div>
+
+
+
+    <script>
+        document.getElementById('uploadPDBForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('{{ url_for("upload_pdb") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    console.log(`*** DATA ***${JSON.stringify(data)}`)
+                    visualizePDBs(data.pdb_files);
+                    addNewPDBUploadForm();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        document.getElementById('uploadSAXSForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('{{ url_for("upload_saxs") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    plotScatteringProfile(data.saxs_file);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        function addNewPDBUploadForm() {
+            const uploadPDBForm = document.getElementById('uploadPDBForm');
+            const newForm = uploadPDBForm.cloneNode(true);
+            newForm.id = `uploadPDBForm-${Date.now()}`;
+            uploadPDBForm.after(newForm);
+            newForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+                fetch('{{ url_for("upload_pdb") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        visualizePDBs(data.pdb_files);
+                        addNewPDBUploadForm();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+
+        function visualizePDBs(pdbFiles) {
+            const container = document.getElementById('pdb-visualizations');
+            container.innerHTML = '';
+            pdbFiles.forEach((pdbFile, index) => {
+                const div = document.createElement('div');
+                div.className = 'viewport-container';
+                const title = document.createElement('div');
+                title.className = 'viewer-title';
+                title.textContent = `PDB File: ${pdbFile.split('/').pop()}`;
+                const viewport = document.createElement('div');
+                viewport.id = `viewport-${pdbFile}`;
+                viewport.className = 'viewport';
+                div.appendChild(title);
+                div.appendChild(viewport);
+                container.appendChild(div);
+                console.log(`/${pdbFile}`)
+                const stage = new NGL.Stage(viewport.id, {backgroundColor: 'white'});
+                stage.loadFile(`/${pdbFile}`).then(function(o) {
+                    o.addRepresentation("cartoon");
+                    o.autoView();
+                });
+                viewport.addEventListener('mouseenter', function() {
+                    document.addEventListener('wheel', preventScroll, { passive: false });
+                });
+
+                viewport.addEventListener('mouseleave', function() {
+                    document.removeEventListener('wheel', preventScroll);
+                });
+
+                function preventScroll(event) {
+                    if (!viewport.matches(':active')) {
+                        event.preventDefault();
+                    }
+                }
+            });
+        }
+
+        function plotScatteringProfile(saxsFile) {
+            fetch(`/uploads/${saxsFile}`)
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.split('\n');
+                    const q = [];
+                    const intensity = [];
+                    lines.forEach(line => {
+                        const parts = line.trim().split(/\s+/);
+                        if (parts.length === 2) {
+                            q.push(parseFloat(parts[0]));
+                            intensity.push(parseFloat(parts[1]));
+                        }
+                    });
+                    const trace = {
+                        x: q,
+                        y: intensity,
+                        mode: 'markers',
+                        type: 'scatter'
+                    };
+                    const layout = {
+                        title: 'Scattering Profile',
+                        xaxis: { title: 'q' },
+                        yaxis: { title: 'Intensity' }
+                    };
+                    Plotly.newPlot('scatterPlot', [trace], layout);
+                });
+        }
+    </script>
+</body>
+</html>
