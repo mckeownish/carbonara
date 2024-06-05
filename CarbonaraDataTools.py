@@ -2892,7 +2892,7 @@ def create_mixture(preprocessed_directories_list,mixture_name,saxs_file_loc):
             if os.path.exists(from_dir+'/fixedDistanceConstraints1.dat'):
                 shutil.copyfile(from_dir+'/fixedDistanceConstraints1.dat',to_dir+'/fixedDistanceConstraints'+str(i+1)+'.dat')
         write_mixture_ratios(len(preprocessed_directories_list),to_dir+'/mixtureFile.dat')
-        shutil.copyfile(saxs_file_loc,to_dir+'/Saxs.dat')
+        write_saxs(saxs_file_loc,to_dir)
     else:
         return("A folder already exists with that name, choose another to not overwrite this!")
 
