@@ -2672,17 +2672,27 @@ def getResIDs(pdb_fl):
     M = pdb_2_biobox(pdb_fl)
     ca_idx = (M.data['name']=='CA').values
     resids = M.get_data(indices=ca_idx)
-    coords_chains = pull_structure_from_pdb(pdb_fl)[0]
+    coords_chains_in,sequence_chains_in,_,_= pull_structure_from_pdb(pdb_fl)
     resids = resids[:,5]
+    
     # >> check for missing residues geometrically in the chain(s)
-    for coords in coords_chains:
-        breaking_indices = missing_ca_check(coords)
+    for j in range(len(coords_chains_in)):
+        breaking_indices = missing_ca_check(coords_chains_in[j])
         if len(breaking_indices) > 0:
-            resids = np.array_split(resids,breaking_indices)
+            coords_chains_in[j] = break_into_chains(coords_chains_in[j],sequence_chains_in[j],breaking_indices)[0]
+    coords_chains = []
+    for i in range(len(coords_chains_in)):
+        if isinstance(coords_chains_in[i],list):
+            for j in range(len(coords_chains_in[i])):
+                coords_chains.append(coords_chains_in[i][j])
         else:
-            resids = [resids]
-    return resids
-
+            coords_chains.append(coords_chains_in[i])
+    idx = 0
+    resid_tensor=[]
+    for i in range(len(coords_chains)):
+        resid_tensor.append(resids[idx:idx+len(coords_chains[i])])
+        idx+=len(coords_chains[i])
+    return resid_tensor
 
 def groupResIDs(pdb_fl,fp_fl,chain=1):
     resids = getResIDs(pdb_fl)
