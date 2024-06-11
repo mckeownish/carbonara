@@ -786,7 +786,7 @@ def section_finder_sub(ss):
     return sections
 
 
-def find_sheet_indices(sections):
+def find__indices(sections):
 
     '''Find sheet sub-unit section indices'''
 
@@ -1086,7 +1086,7 @@ def find_non_varying_linkers(initial_coords_file = 'newFitData/Fitting/coordinat
         bond_breaks_dict[l] = sum(bond_break_lst)/(len(linker_bond_arr_dict[l])+1)
 
     # Linker indices that cause no bond breaks
-    conds = np.asarray(list(bond_breaks_dict.values())) < 1.0
+    conds = np.asarray(list(bond_breaks_dict.values())) < 0.00001
 
 
     allowed_linker = linker_indices[conds]
