@@ -1086,7 +1086,7 @@ def find_non_varying_linkers(initial_coords_file = 'newFitData/Fitting/coordinat
         bond_breaks_dict[l] = sum(bond_break_lst)/(len(linker_bond_arr_dict[l])+1)
 
     # Linker indices that cause no bond breaks
-    conds = np.asarray(list(bond_breaks_dict.values())) < 0.00001
+    conds = np.asarray(list(bond_breaks_dict.values())) < 0.0000001
 
 
     allowed_linker = linker_indices[conds]
