@@ -2725,14 +2725,17 @@ def highlightVaryingSections(MolPath,PDB_fl,varyingSections,chain=1):
     resids = getResIDs(PDB_fl)
     ss = get_sses(MolPath+'/fingerPrint1.dat')[chain-1]
     cols=[]
+    varcols = []
+    sscoldict = {'H': 'rgb(240,0,128)', 'S':'rgb(255,255,0)', '-': 'grey'}
     fp=[]
     for i in range(len(ss)):
         for j in range(ss[i][1]):
             fp.append(ss[i][0])
             if i in varyingSections:
-                cols.append('red')
+                varcols.append('red')
             else:
-                cols.append('black')
+                varcols.append('black')
+    sscols = [sscoldict[i] for i in fp]
     coords_chains = pull_structure_from_pdb(PDB_fl)[0]
     for coords in coords_chains:
         breaking_indices = missing_ca_check(coords)
