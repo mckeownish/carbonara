@@ -24,7 +24,7 @@ from tqdm import tqdm
 from Bio.PDB import PDBParser
 from Bio.PDB.DSSP import DSSP
 from Bio.PDB.DSSP import make_dssp_dict
-from DSSPparser import parseDSSP
+#from DSSPparser import parseDSSP
 
 import biobox as bb
 
@@ -1879,8 +1879,8 @@ def old_df2plot(df_log,dict_type, highlight=False):
 
 # NEW LOGGING
 
-def getLogs(MolPath,RunName):
-    return glob(MolPath+RunName+'/fitLog*')
+def getLogs(working_path):
+    return glob(working_path+'/fitLog*')
 
 
 def LogFile2df(logFilePath):
@@ -1926,91 +1926,124 @@ def viewBestMolChange(RunPath,LogFilePath):
     df = getAcceptableFits(LogFile2df(LogFilePath))
     if len(df)==0:
         df = LogFile2df(LogFilePath)
-    current_coords = np.genfromtxt(df.tail(1)['MoleculePath'].values[0])
-    current_coords = current_coords[~np.isnan(current_coords).any(axis=1)]
-    start_coords = np.genfromtxt(RunPath+'coordinates1.dat')
-    aligned = rmsd.kabsch_fit(current_coords,start_coords)
-    diff_coords = np.array([np.linalg.norm(start_coords[i]-aligned[i]) for i in range(len(start_coords))])
-    norm_diff = diff_coords/max(diff_coords)
-    fig = go.Figure()
-    fig.add_trace(go.Scatter3d(
-        x=start_coords[:,0],
-        y=start_coords[:,1],
-        z=start_coords[:,2],
-        name='Start',
-        visible='legendonly',
-        marker=dict(
-            size=1,
-            color='red',
-        ),
-        line=dict(
-            color='red',
-            width=10
-        )
-    ))
-    fig.add_trace(go.Scatter3d(
-        x=aligned[:,0],
-        y=aligned[:,1],
-        z=aligned[:,2],
-        name='Change',
-        marker=dict(
-            size=1,
-            color=norm_diff,
-            colorscale='jet',
-            colorbar=dict(thickness=20),
-        ),
-        line=dict(
-            color=norm_diff,
-            colorscale='jet',
-            colorbar=dict(thickness=20),
-            width=10
-        )
-    ))
-    fig.add_trace(go.Scatter3d(
-        x=aligned[:,0],
-        y=aligned[:,1],
-        z=aligned[:,2],
-        name='Best',
-        visible='legendonly',
-        marker=dict(
-            size=1,
-            color='blue',
-        ),
-        line=dict(
-            color='blue',
-            width=10
-        )
-    ))
-    fig.update_layout(width=1000,height=1000)
+    best_mol_path = df['MoleculePath'].tail(1).values[0]
+    molpaths = glob('_'.join(best_mol_path.split('_')[:2])+'_*_'+'_'.join(best_mol_path.split('_')[3:]))
+    no_mols = len(molpaths)
+    fig = make_subplots(rows=1,
+                        cols=no_mols,
+                        column_widths=[round(1/no_mols, 1) for i in range(no_mols)],
+                        horizontal_spacing=1,
+                        specs=[[{'type': 'scene'} for _ in range(no_mols)]])
+    for i in range(no_mols):
+        current_coords_tensor = load_any_coords(molpaths[i])
+        idx = 0
+        for current_coords in current_coords_tensor:
+            start_coords = np.genfromtxt(RunPath+'coordinates'+str(i+1)+'.dat')[idx:idx+len(current_coords)]
+            idx+=len(current_coords)
+            aligned = rmsd.kabsch_fit(current_coords,start_coords)
+            diff_coords = np.array([np.linalg.norm(start_coords[i]-aligned[i]) for i in range(len(start_coords))])
+            norm_diff = diff_coords/max(diff_coords)
+            fig.add_trace(go.Scatter3d(
+                x=start_coords[:,0],
+                y=start_coords[:,1],
+                z=start_coords[:,2],
+                legendgroup="Molecule"+str(i+1),
+                legendgrouptitle_text="Molecule"+str(i+1),
+                name='Start',
+                visible='legendonly',
+                marker=dict(
+                    size=1,
+                    color='red',
+                ),
+                line=dict(
+                    color='red',
+                    width=10
+                )
+            ), 
+                                    row=1,
+                                    col=i+1)
+            fig.add_trace(go.Scatter3d(
+                x=aligned[:,0],
+                y=aligned[:,1],
+                z=aligned[:,2],
+                legendgroup="Molecule"+str(i+1),
+                legendgrouptitle_text="Molecule"+str(i+1),
+                name='Change',
+                marker=dict(
+                    size=1,
+                    color=norm_diff,
+                    colorscale='jet',
+                ),
+                line=dict(
+                    color=norm_diff,
+                    colorscale='jet',
+                    #colorbar=dict(thickness=20),
+                    width=10
+                )
+            ), 
+                                    row=1,
+                                    col=i+1)
+            fig.add_trace(go.Scatter3d(
+                x=aligned[:,0],
+                y=aligned[:,1],
+                z=aligned[:,2],
+                legendgroup="Molecule"+str(i+1),
+                legendgrouptitle_text="Molecule"+str(i+1),
+                name='Best',
+                visible='legendonly',
+                marker=dict(
+                    size=1,
+                    color='blue',
+                ),
+                line=dict(
+                    color='blue',
+                    width=10
+                )
+            ), 
+                                    row=1,
+                                    col=i+1)
+    for i in range(no_mols):
+        scene_name = f'scene{i+1}'
+        fig.update_layout(**{
+            scene_name: dict(
+                xaxis_title='',
+                yaxis_title='',
+                zaxis_title='',
+                aspectratio=dict(x=1, y=1, z=1),
+                aspectmode='manual',
+                xaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False,
+                ),
+                yaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False),
+                zaxis=dict(
+                    visible=False,
+                    showbackground=False,
+                    showticklabels=False)
+            )
+        })
+    annotations = []
+    for i in range(no_mols):
+        annotations.append(dict(
+            x=(i+0.5) / no_mols,
+            y=1.05,
+            xref="paper",
+            yref="paper",
+            text=f'Molecule {i+1}',  # Change text as needed (e.g., molecule names)
+            showarrow=False,
+            font=dict(size=24)
+        ))
+
     fig.update_layout(
         showlegend=True,
-        legend=dict(x=0),
-        scene=dict(
-            xaxis_title='',
-            yaxis_title='',
-            zaxis_title='',
-            aspectratio = dict( x=1, y=1, z=1 ),
-            aspectmode = 'manual',
-            xaxis = dict(
-                gridcolor="white",
-                showbackground=False,
-                zerolinecolor="white",
-                nticks=0,
-                showticklabels=False),
-            yaxis = dict(
-                gridcolor="white",
-                showbackground=False,
-                zerolinecolor="white",
-                nticks=0,
-                showticklabels=False),
-            zaxis = dict(
-                gridcolor="white",
-                showbackground=False,
-                zerolinecolor="white",
-                nticks=0,
-                showticklabels=False),),
+        legend=dict(x=0,groupclick="toggleitem"),
+        annotations=annotations
     )
-    fig.show()
+    return fig.show()
 
 
 def CollectBestOutputs(MolPath,RunName):
@@ -2750,19 +2783,37 @@ def highlightVaryingSections(MolPath,PDB_fl,varyingSections,chain=1):
             z=mol[:,2],
             text=hover_texts,
             hoverinfo='text',
+            name='Varying Sections',
             marker=dict(
                 size=1,
-                color=cols,
+                color=varcols,
             ),
             line=dict(
-                color=cols,
+                color=varcols,
                 width=10
+            )
+        ))
+    fig.add_trace(go.Scatter3d(
+            x=mol[:,0], 
+            y=mol[:,1], 
+            z=mol[:,2],
+            text=hover_texts,
+            hoverinfo='text',
+            visible='legendonly',
+            name='Secondary Structure',
+            marker=dict(
+                size=1,
+                color=sscols,
+            ),
+            line=dict(
+                color=sscols,
+                width=12.5
             )
         ))
     fig.update_layout(width=1000,height=1000)
     fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
     fig.update_layout(
-        showlegend=False,
+        showlegend=True,
         legend=dict(x=0),
         scene=dict(
             xaxis_title='',
@@ -2789,7 +2840,7 @@ def highlightVaryingSections(MolPath,PDB_fl,varyingSections,chain=1):
                 nticks=0,
                 showticklabels=False),),
     )
-    fig.show()
+    return fig
 
 def translate_distance_constraints(contactPredsIn,coords,working_path,fixedDistList=[]):
     # shift the coordinates back one to fit [0,1, array labelling
