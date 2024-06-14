@@ -786,7 +786,7 @@ def section_finder_sub(ss):
     return sections
 
 
-def find__indices(sections):
+def find_sheet_indices(sections):
 
     '''Find sheet sub-unit section indices'''
 
@@ -2591,8 +2591,10 @@ def getqChanges(LogFilePath):
     '''
     Gets the list of qMax that the run has attempted to fit to.
     '''
-    acceptable_df = getAcceptableFits(LogFile2df(LogFilePath))
-    q = acceptable_df['KmaxCurr'].values
+    df = getAcceptableFits(LogFile2df(LogFilePath))
+    if len(df)==0:
+        df = LogFile2df(LogFilePath)
+    q = df['KmaxCurr'].values
     unique_elements = np.unique(q)
     return unique_elements
 
@@ -2600,9 +2602,11 @@ def getSAXsandMolFile(LogFilePath,q):
     '''
     For a given qMax, finds the best fit up to that value.
     '''
-    acceptable_df = getAcceptableFits(LogFile2df(LogFilePath))
-    saxs_fl = acceptable_df[acceptable_df['KmaxCurr']==q].tail(1)['ScatterPath'].values[0]
-    mol_name = acceptable_df[acceptable_df['KmaxCurr']==q].tail(1)['MoleculePath'].values[0]
+    df = getAcceptableFits(LogFile2df(LogFilePath))
+    if len(df)==0:
+        df = LogFile2df(LogFilePath)
+    saxs_fl = df[df['KmaxCurr']==q].tail(1)['ScatterPath'].values[0]
+    mol_name = df[df['KmaxCurr']==q].tail(1)['MoleculePath'].values[0]
     return [saxs_fl, mol_name]
 
 def plotMolAndSAXS(RunPath,saxs_fl,mol_fl):
