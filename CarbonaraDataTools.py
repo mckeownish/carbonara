@@ -1879,8 +1879,8 @@ def old_df2plot(df_log,dict_type, highlight=False):
 
 # NEW LOGGING
 
-def getLogs(MolPath,RunName):
-    return glob(MolPath+RunName+'/fitLog*')
+def getLogs(working_path):
+    return glob(working_path+'/fitLog*')
 
 
 def LogFile2df(logFilePath):

@@ -1,0 +1,7 @@
+#/bin/bash
+module load gcc
+conda init bash
+conda activate CARBONARA
+jupyter notebook
+
+
