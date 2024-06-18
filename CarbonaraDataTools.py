@@ -1915,7 +1915,8 @@ def viewBestSAXSFit(RunPath,LogFilePath):
     if len(df)==0:
         df = LogFile2df(LogFilePath)
         print("Looks like we haven't found an acceptable fit yet, here's what we have so far!")
-    return SAXS_fit_plotter(RunPath+"Saxs.dat",df['ScatterPath'].values[-1],full_q=False)
+    scatter_path = '/'.join((df['ScatterPath'].values[-1]).split('/')[2:])
+    return SAXS_fit_plotter(RunPath+"Saxs.dat",RunPath + scatter_path,full_q=False)
 
 
 def viewBestMolChange(RunPath,LogFilePath):
@@ -1927,7 +1928,8 @@ def viewBestMolChange(RunPath,LogFilePath):
     if len(df)==0:
         df = LogFile2df(LogFilePath)
     best_mol_path = df['MoleculePath'].tail(1).values[0]
-    molpaths = glob('_'.join(best_mol_path.split('_')[:2])+'_*_'+'_'.join(best_mol_path.split('_')[3:]))
+    full_best = RunPath + '/'.join((best_mol_path).split('/')[2:])
+    molpaths = glob('_'.join(full_best.split('_')[:2])+'_*_'+'_'.join(full_best.split('_')[3:]))
     no_mols = len(molpaths)
     fig = make_subplots(rows=1,
                         cols=no_mols,
@@ -3125,16 +3127,17 @@ def load_any_coords(mol_fl_path):
     else:
         return [flat_coords]
 
-def get_best_mols(log_path):
+def get_best_mols(run_path,log_path):
     df = getAcceptableFits(LogFile2df(log_path))
     if len(df)==0:
         df = LogFile2df(log_path)
     best_mol_path = df['MoleculePath'].tail(1).values[0]
-    molpaths = glob('_'.join(best_mol_path.split('_')[:2])+'_*_'+'_'.join(best_mol_path.split('_')[3:]))
+    full_best = run_path + '/'.join((best_mol_path).split('/')[2:])
+    molpaths = glob('_'.join(full_best.split('_')[:2])+'_*_'+'_'.join(full_best.split('_')[3:]))
     return molpaths
 
-def plot_best_mols(log_path):
-    molpaths = get_best_mols(log_path)
+def plot_best_mols(run_path,log_path):
+    molpaths = get_best_mols(run_path,log_path)
     no_mols = len(molpaths)
     fig = make_subplots(rows=1,
                         cols=no_mols,
