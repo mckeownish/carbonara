@@ -2048,75 +2048,79 @@ def viewBestMolChange(RunPath,LogFilePath):
     return fig.show()
 
 
-def CollectBestOutputs(MolPath,RunName):
+def CollectBestOutputs(working_path):
     '''
     Finds the best prediction (chi^2<=0.005 and most qMax) from each run.
     Returns them as a (# of runs, len(CA), 3) tensor.
     '''
-    logs = getLogs(MolPath,RunName)
+    best_output_names = CollectBestOutputNames(working_path)
     all_coords_tensor = []
-    for log in logs:
-        df = getAcceptableFits(LogFile2df(log))
-        best_coords = np.genfromtxt(df.tail(1)['MoleculePath'].values[0],skip_footer=1)
+    for name in best_output_names:
+        best_coords = load_any_coords(name)
         all_coords_tensor.append(best_coords)
     all_coords_tensor = np.array(all_coords_tensor)
     return all_coords_tensor
 
 
-def CollectBestOutputNames(MolPath,RunName):
+def CollectBestOutputNames(working_path):
     '''
     Collects the file names for the best prediction from each run.
     '''
-    logs = getLogs(MolPath,RunName)
+    logs = getLogs(working_path)
     best_output_names = []
     for log in logs:
         df = getAcceptableFits(LogFile2df(log))
-        best_output_names.append(df.tail(1)['MoleculePath'].values[0].split('/')[-1][:-8])
+        if len(df)==0:
+            df = LogFile2df(log)
+        rel_name = df.tail(1)['MoleculePath'].values[0].split('/')[-1]
+        best_output_names.append(working_path+'/'+rel_name)
     return best_output_names
 
 
-def AlignBestOutputs(MolPath,RunName):
+def AlignBestOutputs(working_path):
     '''
     Aligns the best prediction (chi^2<=0.005 and most qMax) from each run
     Returns them as a (# of runs, len(CA), 3) tensor.
     '''
-    best_coords_tensor = CollectBestOutputs(MolPath,RunName)
+    best_coords_tensor = CollectBestOutputs(working_path)
     aligned_coords_tensor = np.zeros_like(best_coords_tensor)
     aligned_coords_tensor[0,:,:] = best_coords_tensor[0,:,:]
     size = best_coords_tensor.shape[0]
     for i in range(1,size):
-        aligned_coords_tensor[i,:,:] = rmsd.kabsch_fit(best_coords_tensor[i,:,:],best_coords_tensor[0,:,:])
+        for j in range(aligned_coords_tensor[i].shape[0]):
+            aligned_coords_tensor[i,j,:,:] = rmsd.kabsch_fit(best_coords_tensor[i,j,:,:],best_coords_tensor[0,j,:,:])
     return aligned_coords_tensor
 
 
-def BestOutputRMSD(MolPath,RunName):
+def BestOutputRMSD(working_path):
     '''
     Computes the pairwise RMSD matrix for the best predictions from each run.
     Returns a (# runs, #runs) array.
     '''
-    aligned_best_coords = AlignBestOutputs(MolPath,RunName)
+    aligned_best_coords = AlignBestOutputs(working_path)
     size = aligned_best_coords.shape[0]
-    rmsd_arr = np.zeros((size, size))
-    for i in range(size):
-        for j in range(i):
-            rmsd_arr[i,j] = rmsd_arr[j,i] = rmsd.kabsch_rmsd(aligned_best_coords[i,:,:],aligned_best_coords[j,:,:])
+    rmsd_arr = [np.zeros((size, size)) for i in range(aligned_best_coords[0].shape[0])]
+    for idx in range(aligned_best_coords[0].shape[0]):
+        for i in range(size):
+            for j in range(i):
+                rmsd_arr[idx][i,j] = rmsd_arr[idx][j,i] = rmsd.kabsch_rmsd(aligned_best_coords[i,idx,:,:],aligned_best_coords[j,idx,:,:])
     return rmsd_arr
 
 
-def PlotBestOutputRMSD(MolPath,RunName):
+def PlotBestOutputRMSD(working_path):
     '''
     Plots the pairwise RMSD matrix for the best predictions from each run as a heatmap.
     '''
-    names = CollectBestOutputNames(MolPath,RunName)
-    rmsd_arr = BestOutputRMSD(MolPath,RunName)
-    fig = go.Figure(data=go.Heatmap(z=rmsd_arr,x=names,y=names))
-    fig.update_layout(template='simple_white')
-    fig.update_layout(showlegend = False,
-                    width = 750,
-                    height = 750,
-                    autosize = False
-                    )
-    fig.show()
+    rmsd_arr = BestOutputRMSD(working_path)
+    for i in range(len(rmsd_arr)):
+        fig = go.Figure(data=go.Heatmap(z=rmsd_arr[i]))
+        fig.update_layout(template='simple_white')
+        fig.update_layout(showlegend = False,
+                        width = 750,
+                        height = 750,
+                        autosize = False
+                        )
+        fig.show()
 
 # > RMSD 
  
