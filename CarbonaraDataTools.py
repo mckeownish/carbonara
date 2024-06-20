@@ -24,7 +24,6 @@ from tqdm import tqdm
 from Bio.PDB import PDBParser
 from Bio.PDB.DSSP import DSSP
 from Bio.PDB.DSSP import make_dssp_dict
-#from DSSPparser import parseDSSP
 
 import biobox as bb
 

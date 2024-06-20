@@ -279,4 +279,3 @@ dependencies:
     - qtconsole==5.5.2
     - qtpy==2.4.1
     - stack-data==0.6.3
-prefix: /dls/science/groups/b21/miniconda3/envs/CARBONARA
