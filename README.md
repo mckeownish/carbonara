@@ -1,54 +1,79 @@
+This codebase is a C++ project focused on refinement of protein structures against experimental in solution SAXS. It includes functionality for generating and manipulating molecular structures, analyzing their properties, and fitting them to experimental data.
 
-# Coming soon... CarbonaraPy
+## Key Components
 
-CarbonaraPy: a Python package that interfaces with our C++ package Carbonara that provides tools for correcting structural predictions of proteins using X-ray small-angle scattering (SAXS) in solution.
+### 1. ktlMolecule Class
 
+This class represents a molecular structure. It includes methods for:
+- Reading in sequence and coordinate data
+- Manipulating the molecular structure
+- Analyzing properties like hydrophobicity and coiled-coil potential
 
-## Features
+Key methods to focus on:
+- `readInSequence()`: Parses sequence data
+- `readInCoordinates()`: Loads coordinate data
+- `changeMoleculeSingleMulti()`: Modifies a specific part of the molecule
 
-- Correct structural predictions of proteins based on SAXS data.
-- Refinement of crystallograhy or AlphaFold predictions (even low confidence structures!)
-- Model mixtures of different structural states, help to identify dynamics in solution
-- Easy-to-use Python wrapper.
+### 2. hydrationShellMinimal Class
 
+Handles the calculation of hydration shells around molecules. Key areas:
+- Generation of hydration layer
+- Calculation of solvent-molecule distances
 
-## Installation
+### 3. experimentalData Class
 
-Ensure you have g++ installed, as the package requires compilation of C++ source code.
+Deals with experimental scattering data and fitting. Important methods:
+- `fitToScattering()`: Fits molecular model to scattering data
+- `setPhases()`: Sets up scattering phases for calculations
 
-```bash
-pip install carbonarapy
-```
+### 4. randomMol Class
 
+Generates random molecular structures. Key functionality:
+- Creation of random sections with specific properties
+- Blending different structural elements (e.g., loops to helices)
 
-## Usage
+### 5. writheFP Class
 
-Here's a simple example of how to use CarbonaraPy:
+Calculates writhe (a topological property) for molecular structures. 
+- `DIDownSample()`: Calculates downsampled writhe
+- `compareFingerPrints()`: Compares writhe "fingerprints" between structures
 
-```python
-from carbonarapy import run_predict_structure
+## Main Algorithms
 
-# Example function call
-run_predict_structure( ScatterFile, fileLocs, initialCoordsFile, pairedPredictions, fixedsections, noStructures,
-					   withinMonomerHydroCover, betweenMonomerHydroCover, kmin, kmax, maxNoFitSteps, predictionFile,
-					   scatterOut, mixtureFile, prevFitStr, logLoc, endLinePrevLog, affineTrans, 
-					   number_runs=3, verbose=True
-					 )
+### Structure Generation and Manipulation
 
-```
+Located primarily in `randomMol` class. The main method to focus on is `makeRandomMolecule()`.
 
-See the tutorial notebook for help with function arguments! 
+### Scattering Data Fitting
 
+Implemented in `experimentalData` class. Key method is `fitToScatteringMultiple()`.
 
-## Contributing
+### Writhe Calculation
 
-Contributions to CarbonaraPy are welcome! Please read our contributing guidelines for more information on how to report issues, submit changes, and contribute to the development.
+Implemented in `writheFP` class. The main method is `DIDownSample()`.
 
-License
+## Main Execution Flow
 
-CarbonaraPy is licensed under the MIT License. See the LICENSE file for more details.
+The primary execution flow is in `mainPredictionFinalQvar.cpp`. It follows these steps:
 
+1. Initialize parameters and data structures
+2. Load experimental data
+3. Generate or load initial molecular structures
+4. Iteratively modify structures and evaluate fit
+5. Output results
 
-## Acknowledgments
+## Areas for Improvement
 
-This project is developed and maintained by Joshua McKeown, Arron Bale & Christopher Prior @ Durham University. We appreciate all the contributions from the community! 
+1. Code Organization: Many functions, especially in main files, are very long and could be broken down.
+2. Error Handling: More robust error checking and handling is needed throughout.
+3. Memory Management: Consider replacing raw pointers with smart pointers.
+4. Parallelism: There's potential for more parallelism in computationally intensive parts.
+5. Testing: Implement unit tests for key components.
+
+## Next Steps for Development
+
+1. ~~Refactor `mainPredictionFinalQvar.cpp` to improve readability and maintainability.~~
+2. Implement more comprehensive error handling.
+3. Optimize performance-critical sections, possibly using parallel computing techniques.
+4. Improve documentation throughout the codebase.
+5. Implement a testing framework and write unit tests for key components.

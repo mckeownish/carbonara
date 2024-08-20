@@ -42,14 +42,6 @@ using namespace std::chrono;
 
  --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- */
 
-void molProbe(std::vector<ktlMolecule>& mol, ModelParameters params, experimentalData ed, std::string output) {
-
-  moleculeFitAndState copy_molState(mol, params);
-  // find the overall fit of the updated copy
-  std::pair<double,double> copy_molOverallFit_wol = copy_molState.getOverallFit(ed, params.mixtureList, params.helRatList, params.kmin, params.kmaxCurr);
-  std::cout << output << copy_molOverallFit_wol.first << "\n";
-}
-
 int main(int argc, const char* argv[]) {
 
   /* initialise the log file */
