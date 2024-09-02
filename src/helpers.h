@@ -43,7 +43,7 @@ bool modifyMolecule(ktlMolecule& newMol, ktlMolecule& existingMol, int indexCh, 
 
 // update mol, molState, overallFit and write result to log
 void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolecule& newMol,
-                  moleculeFitAndState& molState, moleculeFitAndState& newMolState, 
+                  moleculeFitAndState& molState, moleculeFitAndState& newMolState,
                   std::pair<double,double>& overallFit, std::pair<double,double>& newOverallFit,
                   Logger& logger, int l, int k, experimentalData& ed, ModelParameters& params);
 
@@ -52,7 +52,7 @@ void updateAndLog(int& improvementIndex, std::vector<ktlMolecule>& mol, ktlMolec
 std::string constructMoleculeName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                                   const int& submol, const int& improvementIndex, const std::string& body);
 
-// Construct scattering file name 
+// Construct scattering file name
 std::string constructScatterName(const std::string& basePath, const std::string& prefix, const std::string& extension,
                                  const int& improvementIndex, const std::string& body);
 
