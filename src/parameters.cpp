@@ -8,11 +8,13 @@ ModelParameters loadParameters(const char* argv[]) {
     params.kmin = std::atof(argv[9]);
     params.kmax = std::atof(argv[10]);
 
-    if (params.kmin < params.q_lim && params.kmax > params.q_lim) {
-        params.kmaxCurr = 0.15;
-    } else {
-        params.kmaxCurr = params.kmax;
-    }
+//    if (params.kmin < params.q_lim && params.kmax > params.q_lim) {
+//        params.kmaxCurr = 0.15;
+//    } else {
+//        params.kmaxCurr = params.kmax;
+//    }
+    
+    params.kmaxCurr = 0.10;
 
     // If resuming from a previous run, adjust parameters accordingly.
     if (strcmp(argv[3], "True") == 0) {

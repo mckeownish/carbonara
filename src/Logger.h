@@ -25,9 +25,10 @@ public:
 
     long long getElapsedTime() const;
 
-    void logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst, 
+    void logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst,
                   const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints,
-                  const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath);
+                  const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath,
+                  const double& C2);
 
     void logMetadata(const std::string& run, ModelParameters params);
 

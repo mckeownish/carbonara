@@ -23,9 +23,10 @@ long long Logger::getElapsedTime() const {
         return std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
     }
 
-void Logger::logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst, 
+void Logger::logEntry(const int& improvementIndex, const int& fitStep, const double& scatterFitFirst,
                       const double& writhePenalty, const double& overlapPenalty, const double& distanceConstraints,
-                      const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath) {
+                      const double& kmaxCurr, const std::string& scatterPath, const std::string& moleculePath,
+                      const double& C2) {
 
     if (logFile.is_open()) {
 
@@ -38,7 +39,7 @@ void Logger::logEntry(const int& improvementIndex, const int& fitStep, const dou
         logFile << "\"WrithePenalty\": " << writhePenalty << ", ";
         logFile << "\"OverlapPenalty\": " << overlapPenalty << ", ";
         logFile << "\"DistanceConstraints\": " << distanceConstraints << ", ";
-        // logFile << "\"DurationCount\": " << durationCount << ", ";
+        logFile << "\"HydrationDensity\": " << C2 << ", ";
         logFile << "\"ElapsedTime(µs)\": " << elapsed << ", ";
         logFile << "\"KmaxCurr\": " << kmaxCurr << ", ";
         logFile << "\"ScatterPath\": \"" << escapeJSON(scatterPath) << "\"" << ", ";
@@ -107,12 +108,12 @@ std::string Logger::escapeJSON(const std::string& s) {
 
 void Logger::consoleInitial(const double& scatterFitFirst, const double& writhePenalty,
                             const double& overlapPenalty, const double& distanceConstraints) {
-                                
+
     // std::cout << std::left << std::setw(80) << "------------------------------ Initial Molecule ------------------------------- "
     std::cout << std::left << std::setw(80) << "------------------------------------------------------------------------------- "
-                           << "\n";         
+                           << "\n";
 
-    std::cout << std::left << std::setw(20) << "Scattering Fit" 
+    std::cout << std::left << std::setw(20) << "Scattering Fit"
                            << std::setw(20) << "Overlap Penalty"
                            << std::setw(20) << "Writhe Penalty"
                            << std::setw(20) << "Contact Penalty"
@@ -131,28 +132,28 @@ void Logger::consoleInitial(const double& scatterFitFirst, const double& writheP
 void Logger::consoleCurrentStep(int step, int index, double currFit) {
 
     std::cout << std::left << std::setw(10) << "Step"
-                            << std::setw(10) << step 
-                            << std::setw(10) << "Index" 
-                            << std::setw(10) << index 
-                            << std::setw(15) << "Current Fit" 
-                            << std::setw(10) << std::setprecision(5) << currFit 
+                            << std::setw(10) << step
+                            << std::setw(10) << "Index"
+                            << std::setw(10) << index
+                            << std::setw(15) << "Current Fit"
+                            << std::setw(10) << std::setprecision(5) << currFit
                             << "\n";
 
-}   
+}
 
 void Logger::consoleFitAttempt(int step, int improveIndex, ModelParameters params, double scatterFitFirst, double scatterFitSecond) {
-    
+
     if (step==0){
-        std::cout << std::left << std::setw(20) << "Improvement Index" 
+        std::cout << std::left << std::setw(20) << "Improvement Index"
                                << std::setw(20) << "Current Fit Step"
                                << std::setw(20) << "Current Scatter"
                                << std::setw(20) << "Updated Scatter"
                                << "\n";
 
     }
-    
+
     std::cout << std::left
-                
+
                 << std::setw(20)  << improveIndex
                 << std::setw(20)  << step
                 << std::setw(20) << scatterFitFirst

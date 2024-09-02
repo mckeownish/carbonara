@@ -15,7 +15,7 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   writhePenalty=0.0;
   hydrationShellBest.resize(mol.size());
   connectionPenaltySet.resize(mol.size());
-  
+
   // set the fixed fitting parameters
   Rin = params.Rin;
   Rout = params.Rout;
@@ -24,8 +24,8 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   closestApproachDist = params.closestApproachDist;
   rmin = params.rmin; rmax = params.rmax; solventsPerLink = params.solventsPerLink;
   lmin = params.lmin;
- 
- 
+
+
   for(int i=0;i<mol.size();i++){
    writheFP wfp;
    std::vector<double> chainWrithes;
@@ -39,7 +39,7 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
   }
   currWrithes =originalWrithes;
   connectionPenalty=0.0;
-  
+
   for(int i=0;i<mol.size();i++){
     //calculate distances
     //std::cout<<"for molecule "<<i<<"\n";
@@ -64,7 +64,7 @@ moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelP
     connectionPenaltySet[i]=connectionPenaltySet[i]/double(mol[i].noChains());
     connectionPenalty = connectionPenalty + connectionPenaltySet[i];
   }
-  
+
   // to fill on first calc
   originalOverlapPenalty= 0.0;
 }
@@ -213,7 +213,7 @@ void moleculeFitAndState::applyWritheConstraint(){
   }
 }
 
-// the following funtion is for when we want to create nmers and keep them "connected" 
+// the following funtion is for when we want to create nmers and keep them "connected"
 
 void moleculeFitAndState::calculateConnectionPenalty(ktlMolecule &molNew,int &chInd){
   connectionPenaltySet[chInd]=0.0;
@@ -331,7 +331,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
 	percentageCombinations = mixtureList[m];
 	bestHelRatList=j;
       }
-    }  
+    }
   }
   // regenerate the best one
   for(int i=0;i<mol.size();i++){
@@ -355,7 +355,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
      i) a very strict overlap penalty which exponetiallp penalises non local sections coming close than 4 A.
      ii) A distance constraint measure, which is only active if the user inputs a set of distance consrtrainst like contact predictions.
      iii) A writhe penalty to ensure the moelule doesn't become too disentangled.
-  
+
   **************************************************************/
   double overlapPenalty = applyOverlapPenalty();
   //std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
@@ -371,6 +371,9 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
+
+  // pass along best hydration C2 parameter
+  C2 = ed.C2;
   return fitStats;
 }
 
@@ -405,7 +408,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
 	percentageCombinations = mixtureList[m];
 	bestHelRatList=j;
       }
-    }  
+    }
   }
   // regenerate the best one
   for(int i=0;i<mol.size();i++){
@@ -429,7 +432,7 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
      i) a very strict overlap penalty which exponetiallp penalises non local sections coming close than 4 A.
      ii) A distance constraint measure, which is only active if the user inputs a set of distance consrtrainst like contact predictions.
      iii) A writhe penalty to ensure the moelule doesn't become too disentangled.
-  
+
   **************************************************************/
   double overlapPenalty = applyOverlapPenalty();
   std::cout<<"Overlap penalty "<<overlapPenalty<<"\n";
@@ -448,6 +451,10 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
+
+  // pass along best hydration C2 parameter
+  C2 = ed.C2;
+
   return fitStats;
 }
 
@@ -506,6 +513,10 @@ std::pair<double,double> moleculeFitAndState::getOverallFit(experimentalData &ed
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
+
+  // pass along best hydration C2 parameter
+  C2 = ed.C2;
+
   return fitStats;
 }
 
@@ -563,6 +574,9 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
   std::pair<double,double> fitStats;
   fitStats.first = currFit;
   fitStats.second = scatterAndHydrationConstraint;
+
+  // pass along best hydration C2 parameter
+  C2 = ed.C2;
+
   return fitStats;
 }
-

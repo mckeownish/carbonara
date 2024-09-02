@@ -15,11 +15,11 @@
 using namespace std::chrono;
 
 // combination of all structures = moleculeStructures
-// each structure is 
+// each structure is
 
 // note: this version showing funky behaviour with getFit()'s - not always consistent when recalled!
 
-/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- 
+/* --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
   argv[ 1] scattering data file
   argv[ 2] sequence file location
@@ -96,7 +96,7 @@ int main(int argc, const char* argv[]) {
 
   // log starting point
   logger.logEntry(0, 0, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(),
-                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, xyzNameInitial);
+                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameInitial, xyzNameInitial, molState.C2);
 
   logger.consoleInitial(overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(), molState.getDistanceConstraints());
 
@@ -116,7 +116,11 @@ int main(int argc, const char* argv[]) {
   while (fitStep < params.noScatterFitSteps) {
 
     // Increasing the kmax if we have a good enough fit, consider a little more of the experimental data!
-    if (overallFit.second < 0.0005 || (params.improvementIndexTest > std::round(params.noScatterFitSteps / 5) && overallFit.second < 0.0007)) {
+
+//    if (overallFit.second < 0.0002 || (params.improvementIndexTest > std::round(params.noScatterFitSteps / 5) && overallFit.second < 0.0007)) {
+
+      if (overallFit.second < 0.0001) {
+
       increaseKmax(overallFit, molStateSet, ed, params, logger);
     }
 
@@ -205,6 +209,7 @@ int main(int argc, const char* argv[]) {
                 improvementIndex++;
                 updateAndLog(improvementIndex, moleculeStructures, newMol, molState, newmolState, overallFit, newOverallFit, logger, structureIndex, fitStep, ed, params);
                 logger.consoleChange("fitImprove", params);
+                std::cout << "Hydration density parameter C2: " << newmolState.C2 << " \n";
 
               }
             }
@@ -235,6 +240,6 @@ int main(int argc, const char* argv[]) {
   std::cout << " overallFitBest fit: " << overallFit.first << "\n";
 
   logger.logEntry(improvementIndex, fitStep, overallFit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(),
-                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd);
+                  molState.getDistanceConstraints(), params.kmaxCurr, scatterNameEnd, moleculeNameEnd, molState.C2);
 
 } // end of main

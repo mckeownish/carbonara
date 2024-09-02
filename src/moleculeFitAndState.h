@@ -9,6 +9,10 @@
 
 class moleculeFitAndState{
 public:
+
+  // best fitting hydration parameter
+  double C2;
+
   moleculeFitAndState(std::vector<ktlMolecule> &mol, ModelParameters& params);
   std::vector<ktlMolecule> getMolecule();
   void updateMolecule(std::vector<ktlMolecule> &molNew);

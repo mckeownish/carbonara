@@ -10,6 +10,8 @@
 
 class experimentalData{
  public:
+  // best fitting hydration parameter
+  double C2;
   experimentalData(const char* scatterFile);
   bool binDataCheck(double &dMax,double &qmin,double &qmax);
   int setPhases(double &dMax,double &kmin,double &kmax);
@@ -39,5 +41,3 @@ class experimentalData{
 };
 
 #endif
-
-

@@ -3,7 +3,7 @@
 experimentalData::experimentalData(const char* scatterFile){
   noDistBins =10000;
   /************************************************
-    read in the scattering 
+    read in the scattering
    ***********************************************/
   std::ifstream scatterdat;
   scatterdat.open(scatterFile);
@@ -31,14 +31,14 @@ experimentalData::experimentalData(const char* scatterFile){
   absKmax = scatVec[scatVec.size()-1].first;
   // std::cout << "\n scattering vector size: " << scatVec.size() << "\n";
   /************************SS
-     load in the scattering function paramers 
+     load in the scattering function paramers
    ***********************/
 
   std::ifstream myfile;
   std::string output;
   myfile.open("averagedSolutions/3_4BeadParams.dat");
   double val;
-  if (myfile.is_open()) { 
+  if (myfile.is_open()) {
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
@@ -59,7 +59,7 @@ experimentalData::experimentalData(const char* scatterFile){
   c=gaussianParams[10];
   myfile.close();
   myfile.open("averagedSolutions/Hyd3_4BeadParams.dat");
-  if (myfile.is_open()) { 
+  if (myfile.is_open()) {
     while(!myfile.eof()){
       std::getline(myfile,output);
       std::stringstream ss(output);
@@ -87,8 +87,8 @@ double experimentalData::gaussianFixed(double &s){
   out = out + a1*std::exp(-gf*b1*s*s);
   out = out + a2*std::exp(-gf*b2*s*s);
   out = out + a3*std::exp(-gf*b3*s*s);
-  out = out + a4*std::exp(-gf*b4*s*s); 
-  out = out + a5*std::exp(-gf*b5*s*s); 
+  out = out + a4*std::exp(-gf*b4*s*s);
+  out = out + a5*std::exp(-gf*b5*s*s);
   out = out +c+0.5;
   return out;
 }
@@ -99,8 +99,8 @@ double experimentalData::gaussianHydFixed(double &s){
   out = out + a1H*std::exp(-gf*b1H*s*s);
   out = out + a2H*std::exp(-gf*b2H*s*s);
   out = out + a3H*std::exp(-gf*b3H*s*s);
-  out = out + a4H*std::exp(-gf*b4H*s*s); 
-  out = out + a5H*std::exp(-gf*b5H*s*s); 
+  out = out + a4H*std::exp(-gf*b4H*s*s);
+  out = out + a5H*std::exp(-gf*b5H*s*s);
   out = out +cH;
   return out;
 }
@@ -173,8 +173,8 @@ int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
     int k=0;
     qvals.clear();
     for(int i=1;i<=noDistBins;i++){
-      std::vector<double> rset; 
-      double r = (i-0.5)*dr; 
+      std::vector<double> rset;
+      double r = (i-0.5)*dr;
       std::pair<double,double> rDistSets;
       rDistSets.first=(i-1)*dr;
       rDistSets.second=i*dr;
@@ -187,7 +187,7 @@ int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
 	  double qminBin = qmin+(j-1)*dq;
 	  double qmaxBin = qmin+j*dq;
 	  std::vector<double> intensities;
-	  // for the logged standard deviation. 
+	  // for the logged standard deviation.
 	  double intensitySum = 0.0;
 	  int noIntensities=0;
 	  std::vector<double> loggedIntensities;
@@ -217,9 +217,9 @@ int experimentalData::setPhases(double &dMax,double &qmin,double &qmax){
 	  for(int k=0;k<loggedIntensities.size();k++){
 	    double dif = loggedIntensities[k]-mean;
 	    SD=SD+dif*dif;
-	  }					    
+	  }
 	  experimentalSD.push_back(SD/(double(loggedIntensities.size()-1)));
-	}     
+	}
 	double krprod = q*r;
 	rset.push_back((std::sin(krprod)/krprod));
       }
@@ -236,7 +236,7 @@ double experimentalData::fitToScattering(std::vector<double> &molDists,std::vect
   /*****************************************
 
 	   molecule distance binning
- 
+
   ******************************************/
   std::vector<int> molDistNo;
   for(int i=0;i<distBins.size();i++){
@@ -251,7 +251,7 @@ double experimentalData::fitToScattering(std::vector<double> &molDists,std::vect
     if(i!=0){
       molDistNo.push_back(2.0*(endK-startK));
     }else{
-      //if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe 
+      //if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe
       molDistNo.push_back(2.0*(endK-startK)+double(molSz));
     }
     //std::cout<<"mol numbers "<<0.5*(binPr.first+binPr.second)<<" "<<2.0*(endK-startK)<<"\n";
@@ -259,7 +259,7 @@ double experimentalData::fitToScattering(std::vector<double> &molDists,std::vect
    /*****************************************
 
 	   solvent distance binning
- 
+
   ******************************************/
   std::vector<int> solDistNo;
   k=0;
@@ -280,7 +280,7 @@ double experimentalData::fitToScattering(std::vector<double> &molDists,std::vect
    /*****************************************
 
 	  solvent-molecule distance binning
- 
+
   ******************************************/
   std::vector<int> solMolDistNo;
   k=0;
@@ -302,7 +302,7 @@ double experimentalData::fitToScattering(std::vector<double> &molDists,std::vect
   /***************************
 
     now construct the scattering formula
-  
+
   ***********************************/
   std::vector<double> scatVals;
   for(int i=0;i<scatPhases[0].size();i++){
@@ -341,7 +341,7 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
   /*****************************************
 
 	   molecule distance binning
- 
+
   ******************************************/
   std::vector<double> molDistNo(distBins.size(),0);
   for(int j=0;j<molDists.size();j++){
@@ -358,7 +358,7 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
       if(i!=0){
 	molDistNo[i]=molDistNo[i] + percentageCombinations[j]*(2.0*double(endK-startK));
       }else{
-	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe 
+	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe
 	molDistNo[i]=molDistNo[i]+ percentageCombinations[j]*(2.0*double(endK-startK)+double(molSz[j]));
       }
     }
@@ -367,9 +367,9 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
    /*****************************************
 
 	   solvent distance binning
- 
+
   ******************************************/
- 
+
   std::vector<double> solDistNo(distBins.size(),0);
   for(int j=0;j<solDists.size();j++){
     int k=0;
@@ -391,7 +391,7 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
    /*****************************************
 
 	  solvent-molecule distance binning
- 
+
    ******************************************/
   std::vector<double> solMolDistNo(distBins.size(),0.0);
   for(int j=0;j<solDists.size();j++){
@@ -411,17 +411,24 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
       }
     }
   }
-  
+
   /***************************
 
     now construct the scattering formula
-  
+
   ***********************************/
   double pred=1000.0;
   //std::cout<<"here ? \n";
-  for(int hi=0;hi<5;hi++){
-    double hydRat = 0.75 + 0.5*hi/4.0;
-    std::vector<double> scatVals;  
+
+//  for(int hi=0;hi<5;hi++){
+
+  for(int hi=0;hi<10;hi++){
+
+//    double hydRat = 0.75 + 0.5*hi/4.0;
+
+    // account for negative hydration density -ve to higher density +ve
+    double hydRat = -1.0 + 3.0*hi/9.0;
+    std::vector<double> scatVals;
     for(int i=0;i<scatPhases[0].size();i++){
       double scatk=0.0;
       // here we get the scatteirng formuale (decay with q)
@@ -456,12 +463,14 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
       // predTemp = predTemp + scatDif*scatDif/experimentalSD[i];
       //std::cout<<qvals[i]<<"\n";
       //predTemp = predTemp + std::exp(-1000.0*qvals[i]*qvals[i]*qvals[i]*qvals[i])*scatDif*scatDif;
-      predTemp = predTemp + scatDif*scatDif;  
+      predTemp = predTemp + scatDif*scatDif;
     }
     if(predTemp<pred){
       pred = predTemp;
+      C2 = hydRat;
     }
   }
+  // std::cout<<"Best hydration parameter (C2) in scattering fit: "<<C2<<"\n";
   return pred/(scatPhases[0].size()-1);
 }
 
@@ -472,12 +481,186 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
 
 
 
+void experimentalData::writeScatteringToFileMultiple(std::vector<std::vector<double> > &molDists,std::vector<std::vector<double> > &solDists,std::vector<std::vector<double> > &solMolDists,std::vector<int> &molSz,std::vector<int> &solSz,std::vector<double> &percentageCombinations,const char* filename){
+  /*****************************************
+
+	   molecule distance binning
+
+  ******************************************/
+  std::vector<double> molDistNo(distBins.size(),0);
+  for(int j=0;j<molDists.size();j++){
+    int k=0;
+    for(int i=0;i<distBins.size();i++){
+      std::pair<double,double> binPr = distBins[i];
+      int startK=k;
+      //std::cout<<binPr.first<<" "<<binPr.second<<" "<<molDists[k]<<"\n";
+      while(molDists[j][k]>binPr.first &&molDists[j][k]<=binPr.second){
+	//std::cout<<molDists[k]<<"\n";
+	k++;
+      }
+      int endK =k;
+      if(i!=0){
+	molDistNo[i]=molDistNo[i] + percentageCombinations[j]*(2.0*double(endK-startK));
+      }else{
+	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe
+	molDistNo[i]=molDistNo[i]+ percentageCombinations[j]*(2.0*double(endK-startK)+double(molSz[j]));
+      }
+    }
+    //std::cout<<"mol numbers "<<0.5*(binPr.first+binPr.second)<<" "<<2.0*(endK-startK)<<"\n";
+  }
+   /*****************************************
+
+	   solvent distance binning
+
+  ******************************************/
+
+  std::vector<double> solDistNo(distBins.size(),0);
+  for(int j=0;j<solDists.size();j++){
+    int k=0;
+    for(int i=0;i<distBins.size();i++){
+      std::pair<double,double> binPr = distBins[i];
+      int startK=k;
+      while(solDists[j][k]>binPr.first && solDists[j][k]<=binPr.second){
+	k++;
+      }
+      int endK =k;
+      if(i!=0){
+	solDistNo[i]=solDistNo[i] +  percentageCombinations[j]*2.0*(endK-startK);
+      }else{
+	solDistNo[i]=solDistNo[i] +  percentageCombinations[j]*(2.0*(endK-startK)+double(solSz[j]));
+      }
+    //std::cout<<"sol numbers "<<0.5*(binPr.first+binPr.second)<<" "<<2.0*(endK-startK)<<"\n";
+    }
+  }
+   /*****************************************
+
+	  solvent-molecule distance binning
+
+   ******************************************/
+  std::vector<double> solMolDistNo(distBins.size(),0.0);
+  for(int j=0;j<solDists.size();j++){
+    int k=0;
+    for(int i=0;i<distBins.size();i++){
+      std::pair<double,double> binPr = distBins[i];
+      int startK=k;
+      while(solMolDists[j][k]>binPr.first && solMolDists[j][k]<=binPr.second){
+	k++;
+      }
+      int endK =k;
+      if(i!=0){
+	solMolDistNo[i] = solMolDistNo[i]+ percentageCombinations[j]*2.0*(endK-startK);
+	//std::cout<<binPr.first<<" "<<binPr.second<<" "<<2.0*(endK-startK)<<"\n";
+      }else{
+	solMolDistNo[i] = solMolDistNo[i] +  percentageCombinations[j]*2.0*(endK-startK)+double(solSz[j]);
+	//std::cout<<binPr.first<<" "<<binPr.second<<" "<<(2.0*(endK-startK)+2.0*double(solSz*molSz))<<"\n";
+      }
+    }
+  }
+
+   /***************************
+
+    now construct the scattering formula
+
+  ***********************************/
+  // double pred=1000.0;
+  double hydRatOut = C2;
+ //  for(int hi=0;hi<5;hi++){
+ //    double hydRat = 0.75 + 0.5*hi/4.0;
+ //    std::vector<double> scatVals;
+ //    for(int i=0;i<scatPhases[0].size();i++){
+ //      double scatk=0.0;
+ //      // here we get the scatteirng formuale (decay with q)
+ //      double aminoScat = gaussianFixed(qvals[i]);
+ //      double solScat = gaussianHydFixed(qvals[i]);
+ //      for(int j=0;j<scatPhases.size();j++){
+	// //  std::cout<<"phases "<<scatPhases[j][i]<<" "<<molDistNo[j]<<" "<<solDistNo[j]<<" "<<solMolDistNo[j]<<"\n";
+	// scatk =  scatk + scatPhases[j][i]*(aminoScat*aminoScat*molDistNo[j] +hydRat*hydRat*solScat*solScat*solDistNo[j] + hydRat*solScat*aminoScat*solMolDistNo[j]);
+ //      }
+ //      //std::cout<<i<<" "<<scatk<<"\n";
+ //      scatVals.push_back(scatk);
+ //    }
+ //    // now take the log
+ //    std::vector<double> logdifs;
+ //    double logDifMean=0.0;
+ //    int noMean=0;
+ //    for(int i=0;i<scatVals.size();i++){
+ //      //std::cout<<std::log(scatVals[i])<<" "<<std::log(scatVals[i])+(std::log(experimentalIntensity[0])-std::log(scatVals[0]))<<" "<<std::log(experimentalIntensity[i])<<"\n";
+ //      double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
+ //      logdifs.push_back(logScatDif);
+ //      if(qvals[i]<0.1){
+	// logDifMean =  logDifMean + logScatDif;
+	// noMean++;
+ //      }
+ //    }
+ //    logDifMean = logDifMean/double(noMean);
+ //    //logDifMean =  std::log(scatVals[0]) - std::log(experimentalIntensity[0]);
+ //    double predTemp = 0.0;
+ //    for(int i=0;i<scatVals.size();i++){
+ //      double scatDif = logdifs[i] - logDifMean;
+ //      predTemp = predTemp + scatDif*scatDif/experimentalSD[i];
+ //    }
+ //    if(predTemp<pred){
+ //      pred = predTemp;
+ //      hydRatOut = hydRat;
+ //    }
+ //  }
+
+  std::vector<double> scatVals;
+  for(int i=0;i<scatPhases[0].size();i++){
+    double scatk=0.0;
+    // here we get the scatteirng formuale (decay with q)
+    double aminoScat = gaussianFixed(qvals[i]);
+    double solScat = 0.95*gaussianHydFixed(qvals[i]);
+    for(int j=0;j<scatPhases.size();j++){
+      scatk =  scatk + scatPhases[j][i]*(aminoScat*aminoScat*molDistNo[j] +hydRatOut*hydRatOut*solScat*solScat*solDistNo[j] + hydRatOut*solScat*aminoScat*solMolDistNo[j]);
+    }
+    scatVals.push_back(scatk);
+  }
+    // now take the log
+  std::vector<std::pair<double,double> > scatterData;
+  std::ofstream myfile;
+  myfile.open(filename);
+  std::vector<double> logdifs;
+  double logDifMean=0.0;
+  int noMean=0;
+  for(int i=0;i<scatVals.size();i++){
+    //std::cout<<std::log(scatVals[i])+(std::log(experimentalIntensity[0])-std::log(scatVals[0]))<<" "<<std::log(experimentalIntensity[i])<<"\n";
+    double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
+    logdifs.push_back(logScatDif);
+    if(qvals[i]<0.1){
+      logDifMean =  logDifMean + logScatDif;
+      noMean++;
+    }
+  }
+  logDifMean = logDifMean/double(noMean);
+  //logDifMean =  std::log(scatVals[0]) - std::log(experimentalIntensity[0]);
+  double pred = 0.0;
+  for(int i=0;i<scatVals.size();i++){
+    myfile<<qvals[i]<<" "<<scatVals[i]<<" "<<std::log(scatVals[i])- logDifMean<<" "<<std::log(experimentalIntensity[i])<<"\n";
+  }
+  // finally add the percentage combination values
+  for(int i=0;i<percentageCombinations.size();i++){
+    if(i==(percentageCombinations.size()-1)){
+      myfile<<percentageCombinations[i]<<"\n";
+    }else{
+      myfile<<percentageCombinations[i]<<" ";
+    }
+  }
+  myfile.close();
+}
+
+
+
+
+
+/* === === === === === === === === === === === === === === */
+
 void experimentalData::writeScatteringToFile(std::vector<double> &molDists,std::vector<double> &solDists,std::vector<double> &solMolDists,int &molSz,int &solSz,const char* filename){
   int k=0;
   /*****************************************
 
 	   molecule distance binning
- 
+
   ******************************************/
   std::vector<int> molDistNo;
   for(int i=0;i<distBins.size();i++){
@@ -491,14 +674,14 @@ void experimentalData::writeScatteringToFile(std::vector<double> &molDists,std::
     if(i!=0){
       molDistNo.push_back(2.0*(endK-startK));
     }else{
-      //if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe 
+      //if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe
       molDistNo.push_back(2.0*(endK-startK)+double(molSz));
     }
   }
    /*****************************************
 
 	   solvent distance binning
- 
+
   ******************************************/
   std::vector<int> solDistNo;
   k=0;
@@ -518,7 +701,7 @@ void experimentalData::writeScatteringToFile(std::vector<double> &molDists,std::
    /*****************************************
 
 	  solvent-molecule distance binning
- 
+
   ******************************************/
   std::vector<int> solMolDistNo;
   k=0;
@@ -540,7 +723,7 @@ void experimentalData::writeScatteringToFile(std::vector<double> &molDists,std::
   /***************************
 
     now construct the scattering formula
-  
+
   ***********************************/
   std::vector<double> scatVals;
   for(int i=0;i<scatPhases[0].size();i++){
@@ -573,181 +756,12 @@ void experimentalData::writeScatteringToFile(std::vector<double> &molDists,std::
 }
 
 
-void experimentalData::writeScatteringToFileMultiple(std::vector<std::vector<double> > &molDists,std::vector<std::vector<double> > &solDists,std::vector<std::vector<double> > &solMolDists,std::vector<int> &molSz,std::vector<int> &solSz,std::vector<double> &percentageCombinations,const char* filename){
-  /*****************************************
-
-	   molecule distance binning
- 
-  ******************************************/
-  std::vector<double> molDistNo(distBins.size(),0);
-  for(int j=0;j<molDists.size();j++){
-    int k=0;
-    for(int i=0;i<distBins.size();i++){
-      std::pair<double,double> binPr = distBins[i];
-      int startK=k;
-      //std::cout<<binPr.first<<" "<<binPr.second<<" "<<molDists[k]<<"\n";
-      while(molDists[j][k]>binPr.first &&molDists[j][k]<=binPr.second){
-	//std::cout<<molDists[k]<<"\n";
-	k++;
-      }
-      int endK =k;
-      if(i!=0){
-	molDistNo[i]=molDistNo[i] + percentageCombinations[j]*(2.0*double(endK-startK));
-      }else{
-	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe 
-	molDistNo[i]=molDistNo[i]+ percentageCombinations[j]*(2.0*double(endK-startK)+double(molSz[j]));
-      }
-    }
-    //std::cout<<"mol numbers "<<0.5*(binPr.first+binPr.second)<<" "<<2.0*(endK-startK)<<"\n";
-  }
-   /*****************************************
-
-	   solvent distance binning
- 
-  ******************************************/
- 
-  std::vector<double> solDistNo(distBins.size(),0);
-  for(int j=0;j<solDists.size();j++){
-    int k=0;
-    for(int i=0;i<distBins.size();i++){
-      std::pair<double,double> binPr = distBins[i];
-      int startK=k;
-      while(solDists[j][k]>binPr.first && solDists[j][k]<=binPr.second){
-	k++;
-      }
-      int endK =k;
-      if(i!=0){
-	solDistNo[i]=solDistNo[i] +  percentageCombinations[j]*2.0*(endK-startK);
-      }else{
-	solDistNo[i]=solDistNo[i] +  percentageCombinations[j]*(2.0*(endK-startK)+double(solSz[j]));
-      }
-    //std::cout<<"sol numbers "<<0.5*(binPr.first+binPr.second)<<" "<<2.0*(endK-startK)<<"\n";
-    }
-  }
-   /*****************************************
-
-	  solvent-molecule distance binning
- 
-   ******************************************/
-  std::vector<double> solMolDistNo(distBins.size(),0.0);
-  for(int j=0;j<solDists.size();j++){
-    int k=0;
-    for(int i=0;i<distBins.size();i++){
-      std::pair<double,double> binPr = distBins[i];
-      int startK=k;
-      while(solMolDists[j][k]>binPr.first && solMolDists[j][k]<=binPr.second){
-	k++;
-      }
-      int endK =k;
-      if(i!=0){
-	solMolDistNo[i] = solMolDistNo[i]+ percentageCombinations[j]*2.0*(endK-startK);
-	//std::cout<<binPr.first<<" "<<binPr.second<<" "<<2.0*(endK-startK)<<"\n";
-      }else{
-	solMolDistNo[i] = solMolDistNo[i] +  percentageCombinations[j]*2.0*(endK-startK)+double(solSz[j]);
-	//std::cout<<binPr.first<<" "<<binPr.second<<" "<<(2.0*(endK-startK)+2.0*double(solSz*molSz))<<"\n";
-      }
-    }
-  }
-  
-   /***************************
-
-    now construct the scattering formula
-  
-  ***********************************/
-  double pred=1000.0;
-  double hydRatOut =1.0;
-  for(int hi=0;hi<5;hi++){
-    double hydRat = 0.75 + 0.5*hi/4.0;
-    std::vector<double> scatVals;  
-    for(int i=0;i<scatPhases[0].size();i++){
-      double scatk=0.0;
-      // here we get the scatteirng formuale (decay with q)
-      double aminoScat = gaussianFixed(qvals[i]);
-      double solScat = gaussianHydFixed(qvals[i]);
-      for(int j=0;j<scatPhases.size();j++){
-	//  std::cout<<"phases "<<scatPhases[j][i]<<" "<<molDistNo[j]<<" "<<solDistNo[j]<<" "<<solMolDistNo[j]<<"\n";
-	scatk =  scatk + scatPhases[j][i]*(aminoScat*aminoScat*molDistNo[j] +hydRat*hydRat*solScat*solScat*solDistNo[j] + hydRat*solScat*aminoScat*solMolDistNo[j]);
-      }
-      //std::cout<<i<<" "<<scatk<<"\n";
-      scatVals.push_back(scatk);
-    }
-    // now take the log
-    std::vector<double> logdifs;
-    double logDifMean=0.0;
-    int noMean=0;
-    for(int i=0;i<scatVals.size();i++){
-      //std::cout<<std::log(scatVals[i])<<" "<<std::log(scatVals[i])+(std::log(experimentalIntensity[0])-std::log(scatVals[0]))<<" "<<std::log(experimentalIntensity[i])<<"\n";
-      double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
-      logdifs.push_back(logScatDif);
-      if(qvals[i]<0.1){
-	logDifMean =  logDifMean + logScatDif;
-	noMean++;
-      }
-    }
-    logDifMean = logDifMean/double(noMean);
-    //logDifMean =  std::log(scatVals[0]) - std::log(experimentalIntensity[0]);
-    double predTemp = 0.0;
-    for(int i=0;i<scatVals.size();i++){
-      double scatDif = logdifs[i] - logDifMean;
-      predTemp = predTemp + scatDif*scatDif/experimentalSD[i];
-    }
-    if(predTemp<pred){
-      pred = predTemp;
-      hydRatOut = hydRat;
-    }
-  }
-  std::vector<double> scatVals;
-  for(int i=0;i<scatPhases[0].size();i++){
-    double scatk=0.0;
-    // here we get the scatteirng formuale (decay with q)
-    double aminoScat = gaussianFixed(qvals[i]);
-    double solScat = 0.95*gaussianHydFixed(qvals[i]);
-    for(int j=0;j<scatPhases.size();j++){
-      scatk =  scatk + scatPhases[j][i]*(aminoScat*aminoScat*molDistNo[j] +hydRatOut*hydRatOut*solScat*solScat*solDistNo[j] + hydRatOut*solScat*aminoScat*solMolDistNo[j]);
-    }
-    scatVals.push_back(scatk);
-  }
-    // now take the log
-  std::vector<std::pair<double,double> > scatterData;
-  std::ofstream myfile;
-  myfile.open(filename);
-  std::vector<double> logdifs;
-  double logDifMean=0.0;
-  int noMean=0;
-  for(int i=0;i<scatVals.size();i++){
-    //std::cout<<std::log(scatVals[i])+(std::log(experimentalIntensity[0])-std::log(scatVals[0]))<<" "<<std::log(experimentalIntensity[i])<<"\n";
-    double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
-    logdifs.push_back(logScatDif);
-    if(qvals[i]<0.1){
-      logDifMean =  logDifMean + logScatDif;
-      noMean++;
-    }
-  }
-  logDifMean = logDifMean/double(noMean);
-  //logDifMean =  std::log(scatVals[0]) - std::log(experimentalIntensity[0]);
-  pred = 0.0;
-  for(int i=0;i<scatVals.size();i++){
-    myfile<<qvals[i]<<" "<<scatVals[i]<<" "<<std::log(scatVals[i])- logDifMean<<" "<<std::log(experimentalIntensity[i])<<"\n";
-  }
-  // finally add the percentage combination values
-  for(int i=0;i<percentageCombinations.size();i++){
-    if(i==(percentageCombinations.size()-1)){
-      myfile<<percentageCombinations[i]<<"\n";
-    }else{
-      myfile<<percentageCombinations[i]<<" ";
-    }
-  }
-  myfile.close();
-}
-
-
-
 
 void experimentalData::writeRawMolScatteringToFileMultiple(std::vector<std::vector<double> > &molDists,std::vector<std::vector<double> > &solDists,std::vector<std::vector<double> > &solMolDists,std::vector<int> &molSz,std::vector<int> &solSz,std::vector<double> &percentageCombinations,const char* filename){
   /*****************************************
 
 	   molecule distance binning
- 
+
   ******************************************/
   std::vector<double> molDistNo(distBins.size(),0);
   for(int j=0;j<molDists.size();j++){
@@ -764,7 +778,7 @@ void experimentalData::writeRawMolScatteringToFileMultiple(std::vector<std::vect
       if(i!=0){
 	molDistNo[i]=molDistNo[i] + percentageCombinations[j]*(2.0*double(endK-startK));
       }else{
-	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe 
+	//if we are considering the first bin it must include the zero distances e,eg, the square of hte number of molecules (why suqe
 	molDistNo[i]=molDistNo[i]+ percentageCombinations[j]*(2.0*double(endK-startK)+double(molSz[j]));
       }
     }
