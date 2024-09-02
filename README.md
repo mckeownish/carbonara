@@ -5,19 +5,19 @@ This codebase is a C++ project focused on refinement of protein structures again
 To build the project using CMake, follow these steps:
 
 
-1. Make sure you have CMake installed on your system (version 3.10 or higher is recommended)
+1. Open a terminal and make sure you have CMake installed on your system (version 3.10 or higher is recommended)
 
 ```
 cmake -version
 ```
 
-2. Open a terminal and navigate to the carbonara root directory:
+2. Navigate to the carbonara root directory:
 
 ```
 cd path/to/carbonara
 ```
 
-3. Create a build directory and navigate into it:
+3. Inside the carbonara directory, create a build directory and navigate into it:
 
 ```
 mkdir build
