@@ -1,7 +1,7 @@
 #include "experimentalData.h"
 
 experimentalData::experimentalData(const char* scatterFile){
-  noDistBins =10000;
+  noDistBins = 10000;
   /************************************************
     read in the scattering
    ***********************************************/
@@ -422,12 +422,10 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
 
 //  for(int hi=0;hi<5;hi++){
 
-  for(int hi=0;hi<10;hi++){
+  for(int hi=0;hi<31;hi++){
 
-//    double hydRat = 0.75 + 0.5*hi/4.0;
-
-    // account for negative hydration density -ve to higher density +ve
-    double hydRat = -1.0 + 3.0*hi/9.0;
+    // account for protein hydration density (-2, 3)
+    double hydRat = -2.0 + 1.0*hi/6.0;
     std::vector<double> scatVals;
     for(int i=0;i<scatPhases[0].size();i++){
       double scatk=0.0;
@@ -450,7 +448,7 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
       double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
       logdifs.push_back(logScatDif);
       if(qvals[i]<0.1){
-	logDifMean =  logDifMean + logScatDif;
+	logDifMean = logDifMean + logScatDif;
 	noMean++;
       }
     }
@@ -473,11 +471,6 @@ double experimentalData::fitToScatteringMultiple(std::vector<std::vector<double>
   // std::cout<<"Best hydration parameter (C2) in scattering fit: "<<C2<<"\n";
   return pred/(scatPhases[0].size()-1);
 }
-
-
-
-
-
 
 
 
@@ -533,9 +526,7 @@ void experimentalData::writeScatteringToFileMultiple(std::vector<std::vector<dou
     }
   }
    /*****************************************
-
 	  solvent-molecule distance binning
-
    ******************************************/
   std::vector<double> solMolDistNo(distBins.size(),0.0);
   for(int j=0;j<solDists.size();j++){
@@ -558,52 +549,10 @@ void experimentalData::writeScatteringToFileMultiple(std::vector<std::vector<dou
   }
 
    /***************************
-
     now construct the scattering formula
-
   ***********************************/
-  // double pred=1000.0;
+
   double hydRatOut = C2;
- //  for(int hi=0;hi<5;hi++){
- //    double hydRat = 0.75 + 0.5*hi/4.0;
- //    std::vector<double> scatVals;
- //    for(int i=0;i<scatPhases[0].size();i++){
- //      double scatk=0.0;
- //      // here we get the scatteirng formuale (decay with q)
- //      double aminoScat = gaussianFixed(qvals[i]);
- //      double solScat = gaussianHydFixed(qvals[i]);
- //      for(int j=0;j<scatPhases.size();j++){
-	// //  std::cout<<"phases "<<scatPhases[j][i]<<" "<<molDistNo[j]<<" "<<solDistNo[j]<<" "<<solMolDistNo[j]<<"\n";
-	// scatk =  scatk + scatPhases[j][i]*(aminoScat*aminoScat*molDistNo[j] +hydRat*hydRat*solScat*solScat*solDistNo[j] + hydRat*solScat*aminoScat*solMolDistNo[j]);
- //      }
- //      //std::cout<<i<<" "<<scatk<<"\n";
- //      scatVals.push_back(scatk);
- //    }
- //    // now take the log
- //    std::vector<double> logdifs;
- //    double logDifMean=0.0;
- //    int noMean=0;
- //    for(int i=0;i<scatVals.size();i++){
- //      //std::cout<<std::log(scatVals[i])<<" "<<std::log(scatVals[i])+(std::log(experimentalIntensity[0])-std::log(scatVals[0]))<<" "<<std::log(experimentalIntensity[i])<<"\n";
- //      double logScatDif= std::log(scatVals[i]) - std::log(experimentalIntensity[i]);
- //      logdifs.push_back(logScatDif);
- //      if(qvals[i]<0.1){
-	// logDifMean =  logDifMean + logScatDif;
-	// noMean++;
- //      }
- //    }
- //    logDifMean = logDifMean/double(noMean);
- //    //logDifMean =  std::log(scatVals[0]) - std::log(experimentalIntensity[0]);
- //    double predTemp = 0.0;
- //    for(int i=0;i<scatVals.size();i++){
- //      double scatDif = logdifs[i] - logDifMean;
- //      predTemp = predTemp + scatDif*scatDif/experimentalSD[i];
- //    }
- //    if(predTemp<pred){
- //      pred = predTemp;
- //      hydRatOut = hydRat;
- //    }
- //  }
 
   std::vector<double> scatVals;
   for(int i=0;i<scatPhases[0].size();i++){
@@ -648,8 +597,6 @@ void experimentalData::writeScatteringToFileMultiple(std::vector<std::vector<dou
   }
   myfile.close();
 }
-
-
 
 
 

@@ -78,7 +78,7 @@ public:
   void resetRandomMolecule();
   void changeMoleculeSingleMulti(int &index,int sec);
   void changeMoleculeMultiRotate(double &angle,point &k,int secIn,point &transVec);
-  void replicateMolecule(int &noReplications); 
+  void replicateMolecule(int &noReplications);
   void rotation3D(point &p,point &centre,point &k,double &cosangle,double &sinangle);
   void rotateSection(std::vector<std::vector<point> >  &section,point &centre,point &k,double &angle,point &transVec);
   void writeMoleculeToFile(const char* filename);
@@ -89,13 +89,18 @@ public:
   void loadContactPredictions(const char* contactloc);
   double getLennardJonesContact();
   void loadFixedSections(const char* fixedsecloc);
+
+  double getBetaSheetProximityReward();
+  bool areSheetsPairallelOrAntiparallel(std::vector<point>& sheet1, std::vector<point>& sheet2);
+  double numBetaSheets;
+
 private:
   std::vector<double> minimumintraMoleculaeDistancePerChain;
   std::vector<std::vector<double> > minimumintraMolecularDistances;
   double minimumintraMolecularDistanceMean;
   std::vector<int> noPts;
   std::vector<std::vector<point> > coords;
-  std::vector<std::vector<std::string> > aminoList; 
+  std::vector<std::vector<std::string> > aminoList;
   std::vector<std::vector<point> > tanlist;
   std::vector<std::vector<point> > normlist;
   std::vector<std::vector<point> > binormlist;

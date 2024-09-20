@@ -1,4 +1,5 @@
 #include "moleculeFitAndState.h"
+#include "ktlMoleculeRandom.h"
 
 
 moleculeFitAndState::moleculeFitAndState(std::vector<ktlMolecule> &molin, ModelParameters& params){
@@ -579,4 +580,26 @@ std::pair<double,double> moleculeFitAndState::getOverallFitForceConnection(exper
   C2 = ed.C2;
 
   return fitStats;
+}
+
+
+double moleculeFitAndState::getBetaSheetReward() {
+
+    double sheetRewards = 0.0;
+
+    for(int i=0;i<mol.size();i++){
+
+        double numSheets = mol[i].numBetaSheets;
+        sheetRewards += mol[i].getBetaSheetProximityReward()/numSheets;
+
+    }
+
+
+    // for(const auto& molecule : mol) {
+    //         sheetRewards += molecule.getBetaSheetProximityReward();
+    //     }
+
+
+    return sheetRewards;
+
 }

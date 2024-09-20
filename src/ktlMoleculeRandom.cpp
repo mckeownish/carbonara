@@ -1,6 +1,5 @@
-
-
 #include "ktlMoleculeRandom.h"
+#include "point.h"
 
 ktlMolecule::ktlMolecule(){
   kapvallink = 0.36932;
@@ -322,7 +321,7 @@ void ktlMolecule::readInSequence(const char* filename,double &rmin,double &rmax,
 		  std::pair<std::string,int> stpr;
 		  stpr.first = prevType;stpr.second = j-currLower+1;
 		  currLower=j+1;
-		  nameSizeList.push_back(stpr);	
+		  nameSizeList.push_back(stpr);
 		  aminoList.push_back(aminoTypeSub);
 		  distChanges.push_back(0.0);
 		  aminoTypeSub.clear();
@@ -395,7 +394,7 @@ void ktlMolecule::readInCoordinates(const char* filename){
 	      waitToFill=false;
 	      //std::cout<<"here?\n";
 	    }
-	  } 
+	  }
 	}
       }
       //std::cout<<coords.size()<<" "<<coords[iv].size()<<" "<<nameSizeList.size()<<" "<<nameSizeList[iv].second<<"\n";
@@ -407,7 +406,7 @@ void ktlMolecule::readInCoordinates(const char* filename){
 
 
 std::vector<double> ktlMolecule::getHydrophobicDistance(std::vector<std::vector<point> > &solventList,double &maxSolDist){
-  // maxSolDist is the size of the spehere I check for solvents in 
+  // maxSolDist is the size of the spehere I check for solvents in
   std::vector<double> meanHydroAminoDists;
   for(int i=0;i<hydroPhobicList.size();i++){
     std::pair<int,int> pr = hydroPhobicList[i];
@@ -493,7 +492,7 @@ double ktlMolecule::coiledCoilPotentialBetween(int &secNo){
   int noCalcs=0;
   int firstIndex =chainList[secNo].first;
   int secondIndex = chainList[secNo].second;
-  // get the sublist of hydrophobic residues in this section 
+  // get the sublist of hydrophobic residues in this section
   std::vector<std::pair<int,int> > coiledCoilSubList;
   for(int i=0;i<coiledCoilList.size();i++){
       if((coiledCoilList[i].first>=firstIndex)&&(coiledCoilList[i].first<=secondIndex)){
@@ -571,7 +570,7 @@ void ktlMolecule::getNegativeResidues(){
 }
 
 
-    
+
 point ktlMolecule::getCentreOfMass(std::vector<std::vector<point> > &cdSet){
   point mean(0.0,0.0,0.0);
   int noMols=0;
@@ -888,9 +887,9 @@ int ktlMolecule::getRandomMolecule(){
 	std::uniform_int_distribution<int> distributionR(0,currOverLapList.size()-1);
 	int iv= distributionR(generator1);
 	if(currOverLapList[iv]==0){
-	  changeMoleculeSingle(currOverLapList[1],tempCoords,subns);  
+	  changeMoleculeSingle(currOverLapList[1],tempCoords,subns);
 	}else{
-	  changeMoleculeSingle(currOverLapList[iv],tempCoords,subns);  
+	  changeMoleculeSingle(currOverLapList[iv],tempCoords,subns);
 	}
       }else{
 	changeMoleculeSingle(currOverLapList[0],tempCoords,subns);
@@ -907,7 +906,7 @@ int ktlMolecule::getRandomMolecule(){
     // now add the section to the whole
     for(int j=0;j<submol.size();j++){
       coords.push_back(submol[j]);
-    } 
+    }
   }
   return noOverLaps;
 }
@@ -991,7 +990,7 @@ void ktlMolecule::replicateMolecule(int &noReplications){
   std::default_random_engine generator1{rdev()};
   std::uniform_real_distribution<> rotAng(0.0,0.5);
   std::uniform_real_distribution<> theAng(0.0,3.14159265359);
-  std::uniform_real_distribution<> phiAng(0.0,6.28318530718); 
+  std::uniform_real_distribution<> phiAng(0.0,6.28318530718);
   point com = getCentreOfMass(coords);
   double maxRad=0.0;
   for(int i=0;i<coords.size();i++){
@@ -1001,7 +1000,7 @@ void ktlMolecule::replicateMolecule(int &noReplications){
         maxRad = rad;
       }
     }
-  } 
+  }
   std::vector<std::vector<point> > replicatedCoords = coords;
   std::vector<std::pair<std::string,int> > replicatedNameSizeList=nameSizeList;
   std::vector<std::pair<int,int> > chainListCopy = chainList;
@@ -1016,10 +1015,10 @@ void ktlMolecule::replicateMolecule(int &noReplications){
     rotateSection(newPts,com,k,angle,translate);
     // now append
     replicatedCoords.insert(replicatedCoords.end(),newPts.begin(),newPts.end());
-    // now add on to the nameList separator 
+    // now add on to the nameList separator
     std::vector<std::pair<std::string,int> > copyNameList;
     for(int j=0;j<nameSizeList.size();j++){
-      std::pair<std::string,int> pr;  
+      std::pair<std::string,int> pr;
       pr.first=nameSizeList[j].first;
       pr.second=nameSizeList[j].second;
       copyNameList.push_back(pr);
@@ -1031,7 +1030,7 @@ void ktlMolecule::replicateMolecule(int &noReplications){
     chainListCopy.push_back(prInts);
     //finally replicate the aminoList and hydration list
     aminoListCopy.insert(aminoListCopy.begin(),aminoList.begin(),aminoList.end());
-  }  
+  }
   aminoList = aminoListCopy;
   nameSizeList=replicatedNameSizeList;
   chainList=chainListCopy;
@@ -1072,8 +1071,8 @@ void ktlMolecule::writeMoleculeToFile(const char* filename){
      for(int k=0;k<chainList.size();k++){
       for(int i=chainList[k].first;i<=chainList[k].second;i++){
        for(int j=0;j<coords[i].size();j++){
-	 //std::cout<<coords[i][j].getX()<<" "<<coords[i][j].getY()<<" "<<coords[i][j].getZ()<<"\n"; 
-	   ofile<<coords[i][j].getX()<<" "<<coords[i][j].getY()<<" "<<coords[i][j].getZ()<<"\n"; 
+	 //std::cout<<coords[i][j].getX()<<" "<<coords[i][j].getY()<<" "<<coords[i][j].getZ()<<"\n";
+	   ofile<<coords[i][j].getX()<<" "<<coords[i][j].getY()<<" "<<coords[i][j].getZ()<<"\n";
        }
        ofile<<"\n";
       }
@@ -1108,7 +1107,7 @@ std::vector<std::pair<double,double> > ktlMolecule::getKapTauVals(){
       }
     }
   }
-  return ktllst; 
+  return ktllst;
 }
 
 
@@ -1171,7 +1170,7 @@ void ktlMolecule::loadContactPredictions(const char* contactloc){
        contactPairList.push_back(tp);
      }
      int cpls =contactPairList.size();
-  }	
+  }
 }
 
 double ktlMolecule::getLennardJonesContact(){
@@ -1220,4 +1219,92 @@ void ktlMolecule::loadFixedSections(const char* fixedsecloc){
        unchangedSections.push_back(section);
      }
   }
+}
+
+
+double ktlMolecule::getBetaSheetProximityReward() {
+
+    std::vector<std::vector<point>> betaSheets;
+
+    // Find all betasheets, add section coords to vec
+    for (int sec=0; sec<coords.size(); sec++) {
+
+        if (nameSizeList[sec].first == "Strand") {
+            betaSheets.push_back(coords[sec]);
+        }
+    }
+
+    numBetaSheets = betaSheets.size();
+
+    // If your protein has fewer than 2 sheets, no reward buddy!
+    if (betaSheets.size() < 2) {
+        return 0.0;
+    }
+
+    double totalReward = 0.0;
+
+    // Go through and find min distance between any of the sheets
+    // maybe I want a count of number of dist under 5A or w/e
+    for (int i=0; i<betaSheets.size()-1; i++) {
+        for (int j=i+1; j<betaSheets.size(); j++) {
+
+            double minDistance = 10000; // rand large number
+
+            for (auto& point1 : betaSheets[i]) {
+                for (auto& point2 : betaSheets[j]){
+                    double distance = point1.eDist(point2);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                    }
+                }
+            }
+
+            // check is sheet is (anti) parallel
+            bool isAligned = areSheetsPairallelOrAntiparallel(betaSheets[i], betaSheets[j]);
+
+            // some reward metric based on closeness and aligned-ness
+            if(isAligned) {
+
+                            double reward = 0.0;
+
+                            // Reward close, aligned sheets. Adjust these parameters as needed.
+                            double Dopt = 5.0;  // Optimal distance in Angstroms
+                            double Dmax = 10.0;  // Max distance for any reward
+                            double Dmin = 3.8; // Min distance - dont want to reward for getting too close!
+
+                            if(minDistance <= Dmin) {
+
+                                reward = 0.0;
+
+                            } else if (minDistance <= Dmax) {
+
+                                reward = 1.0 - std::abs(minDistance - Dopt) / (Dmax - Dmin);
+
+                            }
+
+                            totalReward += reward;
+
+                            }
+        }
+    }
+
+    return totalReward;
+
+}
+
+
+bool ktlMolecule::areSheetsPairallelOrAntiparallel(std::vector<point>& sheet1, std::vector<point>& sheet2) {
+    // Calculate direction vectors for both sheets
+    point dir1 = sheet1.back() - sheet1.front();
+    point dir2 = sheet2.back() - sheet2.front();
+
+    // Normalize the vectors
+    dir1.normalise();
+    dir2.normalise();
+
+    // Calculate (unsigned) angle between the two sheets
+    double dotProduct = std::abs(dir1.dotprod(dir2));
+
+    // If dot product is close to 1 or -1, sheets are parallel or antiparallel
+    return dotProduct > 0.8;  // Adjust this threshold as needed
 }

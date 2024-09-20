@@ -13,8 +13,8 @@ ModelParameters loadParameters(const char* argv[]) {
 //    } else {
 //        params.kmaxCurr = params.kmax;
 //    }
-    
-    params.kmaxCurr = 0.10;
+
+    params.kmaxCurr = 0.25;
 
     // If resuming from a previous run, adjust parameters accordingly.
     if (strcmp(argv[3], "True") == 0) {
@@ -27,7 +27,7 @@ ModelParameters loadParameters(const char* argv[]) {
     params.noScatterFitSteps = std::atoi(argv[11]);
 
     // command-line arguments for rigid body transformations
-    if(strcmp(argv[18],"True") == 0){ 
+    if(strcmp(argv[18],"True") == 0){
         params.affineTrans=true;
     } else {
         params.affineTrans=false;

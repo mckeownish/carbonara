@@ -23,8 +23,6 @@ int main(int argc, const char* argv[]) {
         std::cerr << "Usage: " << argv[0] << " <scattering_data_file> <fingerprint_file> <coordinate_file> <output_prefix> <q_max>" << std::endl;
         return 1;
     }
-    
-    
 
     // Set up model parameters
     ModelParameters params;
@@ -34,6 +32,9 @@ int main(int argc, const char* argv[]) {
     params.rmin = 3.7;
     params.rmax = 3.9;
     params.lmin = 4.0;
+
+
+
 
     // Read experimental data
     experimentalData ed(argv[1]);
@@ -62,18 +63,26 @@ int main(int argc, const char* argv[]) {
     std::cout << horizontal_line() << std::endl;
     std::cout << std::left << std::setw(20) << "Overall fit:" << std::setw(30) << fit.first << std::endl;
     std::cout << std::left << std::setw(20) << "Scattering fit:" << std::setw(30) << fit.second << std::endl;
+    std::cout << std::left << std::setw(20) << "Hydration C2:" << std::setw(30) << molState.C2 << std::endl;
     std::cout << horizontal_line() << std::endl;
 
-    // Write fitted structure and scattering
     std::string outputPrefix = argv[4];
+    // Write fitted structure and scattering
     std::string moleculeName = write_molecules(outputPrefix, 0, molecules, "fitted");
     std::string scatterName = write_scatter(outputPrefix, 0, molState, ed, params.kmin, params.kmaxCurr, "fitted");
-    
+
+    // Log it
+    std::string logFile = outputPrefix + "_logFile.dat";
+    Logger logger(logFile);
+    logger.logEntry(0, 0, fit.first, molState.getWrithePenalty(), molState.getOverlapPenalty(),
+                    molState.getDistanceConstraints(), params.kmaxCurr, scatterName, moleculeName,
+                    molState.C2);
+
     // Write hydration shell
     std::string hydrationShellName = outputPrefix + "_hydration_shell.dat";
     int moleculeIndex = 0; // Since we only have one molecule
     molState.writeHyrdationShellToFile(hydrationShellName.c_str(), moleculeIndex);
-    
+
     // Output file information
     std::cout << center_string("Output Files", 50) << std::endl;
     std::cout << horizontal_line() << std::endl;

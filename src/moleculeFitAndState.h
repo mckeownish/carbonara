@@ -38,7 +38,12 @@ public:
   std::pair<double,double>  getOverallFitForceConnection(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,double &kmin,double &kmax);
   std::pair<double,double> getOverallFit(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,ktlMolecule &molNew,double &kmin,double &kmax,int &i);
   std::pair<double,double>  getOverallFitForceConnection(experimentalData &ed,std::vector<std::vector<double> > &mixtureList,std::vector<double> &helRatList,ktlMolecule &molNew,double &kmin,double &kmax,int &i);
+
   double currFit;
+  double getBetaSheetReward();
+
+
+
 private:
   std::vector<std::vector<double> > molDists;
   std::vector<std::vector<double> > solDists;
