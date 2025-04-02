@@ -14,7 +14,7 @@ ModelParameters loadParameters(const char* argv[]) {
 //        params.kmaxCurr = params.kmax;
 //    }
 
-    params.kmaxCurr = 0.25;
+    params.kmaxCurr = 0.15;
 
     // If resuming from a previous run, adjust parameters accordingly.
     if (strcmp(argv[3], "True") == 0) {

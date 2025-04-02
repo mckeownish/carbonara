@@ -19,11 +19,15 @@ std::string center_string(const std::string& str, int width) {
 }
 
 int main(int argc, const char* argv[]) {
+    
+    std::cout << "Program started successfully!" << std::endl;
+    
     if (argc < 6) {
-        std::cerr << "Usage: " << argv[0] << " <scattering_data_file> <fingerprint_file> <coordinate_file> <output_prefix> <q_max>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <scattering_data_file> <fingerprint_file> <coordinate_file> <output_prefix> <max_q>" << std::endl;
         return 1;
     }
-
+    std::cout << "Very start (0)";
+    
     // Set up model parameters
     ModelParameters params;
     params.kmin = 0.0;
@@ -34,16 +38,20 @@ int main(int argc, const char* argv[]) {
     params.lmin = 4.0;
 
 
-
+    std::cout << "Got this far (1)";
 
     // Read experimental data
     experimentalData ed(argv[1]);
+    
+    std::cout << "experimental (2)";
 
     // Initialize molecule
     ktlMolecule molecule;
     molecule.readInSequence(argv[2], params.rmin, params.rmax, params.lmin);
     molecule.readInCoordinates(argv[3]);
     molecule.getHydrophobicResidues();
+    
+    std::cout << "read in mol (2)";
 
     // Create vector of molecules (in this case, just one)
     std::vector<ktlMolecule> molecules = {molecule};

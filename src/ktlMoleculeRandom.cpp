@@ -41,6 +41,10 @@ std::vector<point> ktlMolecule::getCoordinatesSection(int i){
   return coords[i];
 }
 
+//auto ktlMolecule::getAminoType() {
+//    return aminoType;
+//}
+
 int ktlMolecule::getSubsecSize(int sec){
   // the minus 1 is becasue the labellingnumbers are 1,2,3 e.t.c but for chainList 1 is at index0
   return chainList[sec-1].second-chainList[sec-1].first+1;
@@ -910,9 +914,6 @@ int ktlMolecule::getRandomMolecule(){
   }
   return noOverLaps;
 }
-
-
-
 
 
 void ktlMolecule::changeMoleculeSingleMulti(int &index,int secIn){

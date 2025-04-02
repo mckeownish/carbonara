@@ -113,3 +113,29 @@ The primary execution flow is in `mainPredictionFinalQvar.cpp`. It follows these
 3. Optimize performance-critical sections, possibly using parallel computing techniques.
 4. Improve documentation throughout the codebase.
 5. Implement a testing framework and write unit tests for key components.
+
+## Quick Start with Setup Script
+
+To quickly set up a new refinement run:
+
+1. Make sure you have Python 3.6+ installed with required packages:
+```bash
+pip install numpy pandas
+```
+
+2. Run the setup script with your PDB and SAXS files:
+```bash
+python setup_carbonara.py --pdb your_structure.pdb --saxs your_data.dat --name refinement_name
+```
+
+The script will:
+- Create a new directory structure for your refinement
+- Copy your input files to the appropriate location
+- Create a configuration file with default parameters
+- Validate your input files and dependencies
+
+Options:
+- `--pdb`: Path to your input PDB file (required)
+- `--saxs`: Path to your SAXS data file (required)
+- `--name`: Name for this refinement run (required)
+- `--dir`: Base directory for processing (optional, defaults to current directory)

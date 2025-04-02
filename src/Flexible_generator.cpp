@@ -1,7 +1,36 @@
 #include "ktlMoleculeRandom.h"
 #include "hydrationShellRandom.h"
 #include "experimentalData.h"
-#include <string.h> 
+#include <string.h>
+#include <vector>
+#include "writheFP.h"
+
+
+double calculateWrithePenalty(ktlMolecule &mol) {
+    double writhePenalty = 0.0;
+    writheFP wfp;
+    
+    // Loop through each chain in the molecule
+    for(int chainNum = 1; chainNum <= mol.noChains(); chainNum++) {
+        // Get coordinates for this chain
+        std::vector<std::vector<point> > coords = mol.getSubsecCoordinates(chainNum);
+        
+        // Calculate writhe for this chain
+        double chainWrithe = wfp.DIDownSampleAbsSingle(coords);
+        
+        // Get the length of this subsection
+        double secLen = double(mol.getSubsecSize(chainNum));
+        
+        // Calculate lower bound - same formula as in original implementation
+        double lowerBound = std::pow((secLen/7.5), 1.6) - 3.0;
+        
+        // Calculate penalty using sigmoid function
+        // Same as original: 1.0/(1.0 + exp(20.0*(newWrithe-lowerBound)))
+        writhePenalty += 1.0/(1.0 + std::exp(20.0*(chainWrithe - lowerBound)));
+    }
+    
+    return writhePenalty;
+}
 
 
 /***********************************************
@@ -40,6 +69,9 @@ int main( int argc, const char* argv[] )
     // read in coordinates
     mol.readInCoordinates(argv[2]);
 
+    // Calculate initial writhe penalty
+    double initialWrithePenalty = calculateWrithePenalty(mol);
+    std::cout << "Initial writhe: " << initialWrithePenalty;
 
    for (int repeat=0; repeat<25; repeat++){
         
@@ -63,6 +95,9 @@ int main( int argc, const char* argv[] )
         // c alphas adjacent dist check! 
         int sect_num = 1;
         bool cacaDist= molcp.checkCalphas(chain_num);
+
+        double newWrithePenalty = calculateWrithePenalty(molcp);
+        std::cout << "Updated writhe: " << newWrithePenalty;
 
         //std::cout<<cacaDist<<" "<<std::atoi(argv[4])<<" "<<chain_num<<"\n";
         if(cacaDist==false){

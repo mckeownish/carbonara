@@ -23,6 +23,7 @@ public:
   std::vector<std::vector<point> > getBinormals();
   std::vector<std::vector<point> > getCoordinates();
   std::vector<point> getCoordinatesSection(int i);
+//  auto ktlMolecule::getAminoType();
   int getSubsecSize(int sec);
   std::vector<std::vector<point> > getSubsecCoordinates(int &sec);
   std::vector<std::pair<std::string,int> > getNameSizeListOfSection(int &sec);
