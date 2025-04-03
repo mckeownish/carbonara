@@ -4,7 +4,7 @@ import argparse
 import os
 import shutil
 import sys
-import wiggle.CarbonaraDataTools as cdt
+import CarbonaraDataTools as cdt
 
 def write_runme(working_path, fit_name, fit_n_times, min_q, max_q, max_fit_steps, pairedQ=False, rotation=False):
 

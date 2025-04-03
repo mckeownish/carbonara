@@ -31,7 +31,7 @@ kmin=0.01
 ### argv[10] kmax
 kmax=0.2
 ### argv[11] Max number of fitting steps
-maxNoFitSteps=1000
+maxNoFitSteps=10
 ### argv[12] prediction file - mol[i] in the fitting folder
 predictionFile=$ROOT/newFitData/humanSMARCAL1/fitdata
 ### argv[13] scattering output file

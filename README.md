@@ -36,80 +36,46 @@ cmake ..
 make
 ```
 
-## Key Components
+## Testing Carbonara
 
-### 1. ktlMolecule Class
+To ensure your version of Carbonara is running, run the test case:
 
-This class represents a molecular structure. It includes methods for:
-- Reading in sequence and coordinate data
-- Manipulating the molecular structure
-- Analyzing properties like hydrophobicity and coiled-coil potential
+1. Ensure you are located in `/path/to/carbonara` and run the following command
 
-Key methods to focus on:
-- `readInSequence()`: Parses sequence data
-- `readInCoordinates()`: Loads coordinate data
-- `changeMoleculeSingleMulti()`: Modifies a specific part of the molecule
+```
+sh RunMe_humanSMARCAL1.sh
+```
 
-### 2. hydrationShellMinimal Class
+## Using Carbonara for new structures
 
-Handles the calculation of hydration shells around molecules. Key areas:
-- Generation of hydration layer
-- Calculation of solvent-molecule distances
+To refine protein structure predictions with your own SAXS data, you'll need:
 
-### 3. experimentalData Class
+1. A PDB starting model (AlphaFold or crystal structure recommended)
+2. SAXS experimental data in Å units with three columns: q, I, and I error
 
-Deals with experimental scattering data and fitting. Important methods:
-- `fitToScattering()`: Fits molecular model to scattering data
-- `setPhases()`: Sets up scattering phases for calculations
+### Setting up the Python environment
 
-### 4. randomMol Class
+```bash
+# Create a new conda environment
+conda create -n carbonara_py python=3.10
+conda activate carbonara_py
 
-Generates random molecular structures. Key functionality:
-- Creation of random sections with specific properties
-- Blending different structural elements (e.g., loops to helices)
+# Install required packages
+pip install pandas numpy cython tqdm mdtraj biobox
+```
 
-### 5. writheFP Class
+Then run:
 
-Calculates writhe (a topological property) for molecular structures. 
-- `DIDownSample()`: Calculates downsampled writhe
-- `compareFingerPrints()`: Compares writhe "fingerprints" between structures
+```bash
+python setup_carbonara.py --pdb path/to/pdb --saxs path/to/saxs --name ProteinName 
+```
+```bash
+# Optional flags for customizing refinement
+--fit_n_times INT        Number of times to run the fit (default: 5)
+--min_q FLOAT          Minimum q-value (default: 0.01)
+--max_q FLOAT         Maximum q-value (default: 0.2)
+--max_fit_steps INT   Maximum number of fitting steps (default: 1000)
+--pairedQ               	 Use paired predictions
+--rotation            	 Apply affine rotations
 
-## Main Algorithms
-
-### Structure Generation and Manipulation
-
-Located primarily in `randomMol` class. The main method to focus on is `makeRandomMolecule()`.
-
-### Scattering Data Fitting
-
-Implemented in `experimentalData` class. Key method is `fitToScatteringMultiple()`.
-
-### Writhe Calculation
-
-Implemented in `writheFP` class. The main method is `DIDownSample()`.
-
-## Main Execution Flow
-
-The primary execution flow is in `mainPredictionFinalQvar.cpp`. It follows these steps:
-
-1. Initialize parameters and data structures
-2. Load experimental data
-3. Generate or load initial molecular structures
-4. Iteratively modify structures and evaluate fit
-5. Output results
-
-## Areas for Improvement
-
-1. Code Organization: Many functions, especially in main files, are very long and could be broken down.
-2. Error Handling: More robust error checking and handling is needed throughout.
-3. Memory Management: Consider replacing raw pointers with smart pointers.
-4. Parallelism: There's potential for more parallelism in computationally intensive parts.
-5. Testing: Implement unit tests for key components.
-
-## Next Steps for Development
-
-1. ~~Refactor `mainPredictionFinalQvar.cpp` to improve readability and maintainability.~~
-2. Implement more comprehensive error handling.
-3. Optimize performance-critical sections, possibly using parallel computing techniques.
-4. Improve documentation throughout the codebase.
-5. Implement a testing framework and write unit tests for key components.
+```
