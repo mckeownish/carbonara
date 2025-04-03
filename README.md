@@ -61,7 +61,12 @@ conda create -n carbonara_py python=3.10
 conda activate carbonara_py
 
 # Install required packages
-pip install pandas numpy cython tqdm mdtraj biobox
+pip install pandas 
+pip install numpy 
+pip install cython 
+pip install tqdm 
+pip install mdtraj 
+pip install biobox
 ```
 
 Then run:
