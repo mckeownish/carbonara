@@ -71,11 +71,11 @@ python setup_carbonara.py --pdb path/to/pdb --saxs path/to/saxs --name ProteinNa
 ```
 ```bash
 # Optional flags for customizing refinement
---fit_n_times INT        Number of times to run the fit (default: 5)
---min_q FLOAT          Minimum q-value (default: 0.01)
+--fit_n_times INT     Number of times to run the fit (default: 5)
+--min_q FLOAT         Minimum q-value (default: 0.01)
 --max_q FLOAT         Maximum q-value (default: 0.2)
 --max_fit_steps INT   Maximum number of fitting steps (default: 1000)
---pairedQ               	 Use paired predictions
---rotation            	 Apply affine rotations
+--pairedQ             Use paired predictions
+--rotation            Apply affine rotations
 
 ```
