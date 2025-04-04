@@ -13,10 +13,10 @@ def write_runme(working_path, fit_name, fit_n_times, min_q, max_q, max_fit_steps
     run_file = os.path.join(curr, script_name)
     
     # Path to the data directory (relative to ROOT)
-    data_path = f"newFitData/{fit_name}"
+    data_path = f"carbonara_runs/{fit_name}"
     
     # Create new directories
-    new_data_dir = os.path.join(curr, "newFitData", fit_name)
+    new_data_dir = os.path.join(curr, "carbonara_runs", fit_name)
     fitdata_dir = os.path.join(new_data_dir, "fitdata")
     
     os.makedirs(new_data_dir, exist_ok=True)
@@ -216,7 +216,7 @@ def main():
         )
         
         # Updated output message
-        new_data_dir = os.path.join(os.getcwd(), "newFitData", args.name)
+        new_data_dir = os.path.join(os.getcwd(), "carbonara_runs", args.name)
         print("\nSetup completed successfully!")
         print(f"Initial files were created in: {refine_dir}")
         print(f"Files for Carbonara were copied to: {new_data_dir}")
