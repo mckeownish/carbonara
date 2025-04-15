@@ -6,7 +6,7 @@ import shutil
 import sys
 import CarbonaraDataTools as cdt
 
-def write_runme(working_path, fit_name, fit_n_times, min_q, max_q, max_fit_steps, pairedQ=False, rotation=False):
+def write_runme(working_path, fit_name, fit_n_times, min_q, max_q,min_q_start, max_fit_steps, pairedQ=False, rotation=False):
 
     curr = os.getcwd()
     script_name = 'RunMe_' + str(fit_name) + '.sh'
@@ -88,14 +88,14 @@ def write_runme(working_path, fit_name, fit_n_times, min_q, max_q, max_fit_steps
         fout.write('### argv[ 7] request to apply hydrophobic covering WITHIN monomers will be a list of sections on which to apply it -- Currently not used\n')
         fout.write('withinMonomerHydroCover=none\n')
         
-        fout.write('### argv[ 8] request to apply hydrophobic covering BETWEEN monomers will be a list of pairs to try to hydropobically pair -- currently not used\n')
-        fout.write('betweenMonomerHydroCover=none\n')
-        
-        fout.write('### argv[ 9] kmin\n')
+        fout.write('### argv[ 8] kmin\n')
         fout.write(f'kmin={min_q}\n')
         
-        fout.write('### argv[10] kmax\n')
+        fout.write('### argv[ 9] kmax\n')
         fout.write(f'kmax={max_q}\n')
+
+        fout.write('### argv[ 10] \n')
+        fout.write('kmaxStart={min_q_start}\n')
         
         fout.write('### argv[11] Max number of fitting steps\n')
         fout.write(f'maxNoFitSteps={max_fit_steps}\n')
@@ -131,7 +131,7 @@ def write_runme(working_path, fit_name, fit_n_times, min_q, max_q, max_fit_steps
         fout.write('    echo "\\n"\n')
         fout.write('    echo "Max number of fitting steps: " $maxNoFitSteps\n')
         fout.write('    echo "\\n"\n')
-        fout.write('    $ROOT/build/bin/predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $betweenMonomerHydroCover $kmin $kmax $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans\n')
+        fout.write('    $ROOT/build/bin/predictStructureQvary $ScatterFile $fileLocs $initialCoordsFile $pairedPredictions $fixedsections $noStructures $withinMonomerHydroCover $kmin $kmax $kmaxStart $maxNoFitSteps $predictionFile/mol$i $scatterOut/scatter$i.dat $mixtureFile $prevFitStr $logLoc/fitLog$i.dat $endLinePrevLog $affineTrans\n')
         fout.write('done\n')
     
     # Make the script executable
@@ -150,6 +150,7 @@ def main():
     parser.add_argument('--fit_n_times', type=int, default=5, help='Number of times to run the fit (default: 5)')
     parser.add_argument('--min_q', type=float, default=0.01, help='Minimum q-value (default: 0.01)')
     parser.add_argument('--max_q', type=float, default=0.2, help='Maximum q-value (default: 0.2)')
+    parser.add_argument('--max_q_start', type=float, default=0.1, help='Maximum q-value to start fitting to (default: 0.1)')
     parser.add_argument('--max_fit_steps', type=int, default=1000, help='Maximum number of fitting steps (default: 1000)')
     parser.add_argument('--pairedQ', action='store_true', help='Use paired predictions')
     parser.add_argument('--rotation', action='store_true', help='Apply affine rotations')
@@ -210,12 +211,14 @@ def main():
             fit_n_times=args.fit_n_times,
             min_q=args.min_q,
             max_q=args.max_q,
+            max_q_start=args.max_q_start,
             max_fit_steps=args.max_fit_steps,
             pairedQ=args.pairedQ,
             rotation=args.rotation
         )
         
         # Updated output message
+
         new_data_dir = os.path.join(os.getcwd(), "carbonara_runs", args.name)
         print("\nSetup completed successfully!")
         print(f"Initial files were created in: {refine_dir}")
