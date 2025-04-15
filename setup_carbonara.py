@@ -6,7 +6,7 @@ import shutil
 import sys
 import CarbonaraDataTools as cdt
 
-def write_runme(working_path, fit_name, fit_n_times, min_q, max_q,min_q_start, max_fit_steps, pairedQ=False, rotation=False):
+def write_runme(working_path, fit_name, fit_n_times, min_q, max_q,max_q_start, max_fit_steps, pairedQ=False, rotation=False):
 
     curr = os.getcwd()
     script_name = 'RunMe_' + str(fit_name) + '.sh'
@@ -94,8 +94,8 @@ def write_runme(working_path, fit_name, fit_n_times, min_q, max_q,min_q_start, m
         fout.write('### argv[ 9] kmax\n')
         fout.write(f'kmax={max_q}\n')
 
-        fout.write('### argv[ 10] \n')
-        fout.write('kmaxStart={min_q_start}\n')
+        fout.write('### argv[ 10] kmax Start\n')
+        fout.write(f'kmaxStart={max_q_start}\n')
         
         fout.write('### argv[11] Max number of fitting steps\n')
         fout.write(f'maxNoFitSteps={max_fit_steps}\n')
