@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 import CarbonaraDataTools as cdt
+import numpy as np
 
 def write_runme(working_path, fit_name, fit_n_times, min_q, max_q,max_q_start, max_fit_steps, pairedQ=False, rotation=False):
 
@@ -147,11 +148,11 @@ def main():
     parser.add_argument('-d', '--dir', default=os.getcwd(), help='Base directory (default: current directory)')
     
     # Additional parameters for write_runme
-    parser.add_argument('--fit_n_times', type=int, default=5, help='Number of times to run the fit (default: 5)')
+    parser.add_argument('--fit_n_times', type=int, default=20, help='Number of times to run the fit (default: 5)')
     parser.add_argument('--min_q', type=float, default=0.01, help='Minimum q-value (default: 0.01)')
     parser.add_argument('--max_q', type=float, default=0.2, help='Maximum q-value (default: 0.2)')
     parser.add_argument('--max_q_start', type=float, default=0.1, help='Maximum q-value to start fitting to (default: 0.1)')
-    parser.add_argument('--max_fit_steps', type=int, default=1000, help='Maximum number of fitting steps (default: 1000)')
+    parser.add_argument('--max_fit_steps', type=int, default=10000, help='Maximum number of fitting steps (default: 1000)')
     parser.add_argument('--pairedQ', action='store_true', help='Use paired predictions')
     parser.add_argument('--rotation', action='store_true', help='Apply affine rotations')
     
@@ -167,17 +168,24 @@ def main():
         
         # Process PDB and extract structure information
         coords_chains, sequence_chains, secondary_structure_chains, missing_residues_chains = cdt.pull_structure_from_pdb(args.pdb)
-        
         # Give warning if missing residues are found
         for coords in coords_chains:
             breaking_indices = cdt.missing_ca_check(coords, threshold_dist_Å=10)
             if len(breaking_indices) > 0:
                 print("Warning: Missing segments of chain found: ", len(breaking_indices), breaking_indices)
         
-        # write coordinates files (coordinates1.dat, coordinates2.dat, etc [new files for each chain])
-        coords_files = []
+        # collapse coordinates file into one chain
+        
         for i, coords in enumerate(coords_chains):
-            coords_files.append(cdt.write_coordinates_file(coords, working_path=refine_dir, carb_index=i+1))
+            if i==0:
+                coords_full=coords
+            else:
+                coords_full = np.concatenate((coords_full,coords),axis=0)
+
+        # write this to file
+        
+        coords_files = []
+        coords_files.append(cdt.write_coordinates_file(coords_full, working_path=refine_dir, carb_index=1))
         
         # Write fingerprint file
         number_of_chains = len(coords_chains)
@@ -187,7 +195,7 @@ def main():
             secondary_structure=secondary_structure_chains,
             working_path=refine_dir
         )
-        
+
         # write mixture file - used for ensemble refinement, currently not used - writes 1 to mixture file
         mixture_file = cdt.write_mixture_file(working_path=refine_dir)
         
@@ -196,10 +204,13 @@ def main():
         
         # auto select flexible linker chains that dont break inter-beta sheets
         varying_linker_chains = []
+        index =0
         for coord_file in coords_files:
             varying_linker_chains.append(cdt.auto_select_varying_linker(coord_file, fingerprint_file))
-        
+            index = index +1
+            
         # write flexible linkers to files (varysections1.dat, varysections2.dat, etc [each file is for a different chain])
+        print(varying_linker_chains)
         varying_section_files = []
         for varying_linkers in varying_linker_chains:
             varying_section_files.append(cdt.write_varysections_file(varying_linkers, refine_dir))
